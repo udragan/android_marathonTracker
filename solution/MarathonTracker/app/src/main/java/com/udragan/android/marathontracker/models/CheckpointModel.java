@@ -4,10 +4,11 @@ package com.udragan.android.marathontracker.models;
  * POJO representing a Checkpoint in marathon track.
  */
 public class CheckpointModel {
+
     // fields ***********************************************************************************************************
 
-    private long mLatitude;
-    private long mLongitude;
+    private double mLatitude;
+    private double mLongitude;
 
     // constructors *****************************************************************************************************
 
@@ -17,7 +18,7 @@ public class CheckpointModel {
      * @param latitude  initial latitude.
      * @param longitude initial longitude.
      */
-    public CheckpointModel(long latitude, long longitude) {
+    public CheckpointModel(double latitude, double longitude) {
         mLatitude = latitude;
         mLongitude = longitude;
     }
@@ -29,7 +30,7 @@ public class CheckpointModel {
      *
      * @return latitude of the checkpoint.
      */
-    public long getLatitude() {
+    public double getLatitude() {
         return mLatitude;
     }
 
@@ -47,7 +48,7 @@ public class CheckpointModel {
      *
      * @return longitude of the checkpoint.
      */
-    public long getLongitude() {
+    public double getLongitude() {
         return mLongitude;
     }
 

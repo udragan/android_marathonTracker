@@ -46,8 +46,8 @@ public class CheckpointAdapter extends RecyclerView.Adapter<CheckpointAdapter.Ch
 
     @Override
     public void onBindViewHolder(CheckpointViewHolder holder, int position) {
-        long latitude = mCheckpoints.get(position).getLatitude();
-        long longitude = mCheckpoints.get(position).getLongitude();
+        double latitude = mCheckpoints.get(position).getLatitude();
+        double longitude = mCheckpoints.get(position).getLongitude();
         holder.latitudeText.setText(String.valueOf(latitude));
         holder.longitudeText.setText(String.valueOf(longitude));
     }

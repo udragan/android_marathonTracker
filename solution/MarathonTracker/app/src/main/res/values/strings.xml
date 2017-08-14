@@ -1,3 +1,8 @@
 <resources>
+    <!-- application -->
     <string name="app_name">Marathon Tracker</string>
+
+    <!-- toast messages -->
+    <string name="toast_location_stale">Last known location is stale!</string>
+    <string name="toast_location_permission_denied">Last known location is stale!</string>
 </resources>
