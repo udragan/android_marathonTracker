@@ -14,6 +14,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mCheckpointsRecyclerView;
     private CheckpointAdapter mCheckpointAdapter;
     private FusedLocationProviderClient mFusedLocationProviderClient;
+    private TextView mLatitudeView;
+    private TextView mLongitudeView;
+    private TextView mSpeedView;
+    private TextView mBearingView;
 
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
     private OnFailureListener mLocationSettingsFailureListener;
@@ -56,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mLatitudeView = (TextView) findViewById(R.id.latitude_value_text_main_activity);
+        mLongitudeView = (TextView) findViewById(R.id.longitude_value_text_main_activity);
+        mSpeedView = (TextView) findViewById(R.id.speed_value_text_main_activity);
+        mBearingView = (TextView) findViewById(R.id.bearing_value_text_main_activity);
         Toolbar appBar = (Toolbar) findViewById(R.id.toolbar_main_activity);
         setSupportActionBar(appBar);
 
@@ -160,6 +169,10 @@ public class MainActivity extends AppCompatActivity {
                 if (location != null) {
                     Log.d(TAG, String.format("Last location triggered, lat: %f, lon: %f",
                             location.getLatitude(), location.getLongitude()));
+                    mLatitudeView.setText(String.valueOf(location.getLatitude()));
+                    mLongitudeView.setText(String.valueOf(location.getLongitude()));
+                    mSpeedView.setText(String.valueOf(location.getSpeed()));
+                    mBearingView.setText(String.valueOf(location.getBearing()));
                 } else {
                     String toastMessage = getResources().getString(R.string.toast_location_stale);
                     Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();

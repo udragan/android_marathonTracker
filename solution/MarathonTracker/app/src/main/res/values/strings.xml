@@ -1,8 +1,13 @@
 <resources>
     <!-- application -->
     <string name="app_name">Marathon Tracker</string>
+    <string name="default_float_value">0.0</string>
+    <string name="latitude">latitude</string>
+    <string name="longitude">longitude</string>
+    <string name="speed">speed</string>
+    <string name="bearing">bearing</string>
 
     <!-- toast messages -->
     <string name="toast_location_stale">Last known location is stale!</string>
-    <string name="toast_location_permission_denied">Last known location is stale!</string>
+    <string name="toast_location_permission_denied">Location permission denied!</string>
 </resources>

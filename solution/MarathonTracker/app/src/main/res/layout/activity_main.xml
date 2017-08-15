@@ -18,6 +18,109 @@
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1" />
 
+    <android.support.v7.widget.GridLayout
+        android:id="@+id/grid_layout_current_location_main_activity"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_main_activity">
+
+        <TextView
+            android:id="@+id/latitude_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/latitude"
+            app:layout_columnWeight="1"
+            app:layout_gravity="end" />
+
+        <TextView
+            android:id="@+id/latitude_value_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/default_float_value"
+            app:layout_column="1"
+            app:layout_columnWeight="1"
+            app:layout_row="0" />
+
+        <TextView
+            android:id="@+id/longitude_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/longitude"
+            app:layout_column="0"
+            app:layout_columnWeight="1"
+            app:layout_gravity="end"
+            app:layout_row="1" />
+
+        <TextView
+            android:id="@+id/longitude_value_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/default_float_value"
+            app:layout_column="1"
+            app:layout_columnWeight="1"
+            app:layout_row="1" />
+
+        <TextView
+            android:id="@+id/speed_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/speed"
+            app:layout_column="2"
+            app:layout_columnWeight="1"
+            app:layout_gravity="end"
+            app:layout_row="0" />
+
+        <TextView
+            android:id="@+id/speed_value_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/default_float_value"
+            app:layout_column="3"
+            app:layout_columnWeight="1"
+            app:layout_row="0" />
+
+        <TextView
+            android:id="@+id/bearing_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/bearing"
+            app:layout_column="2"
+            app:layout_columnWeight="1"
+            app:layout_gravity="end"
+            app:layout_row="1" />
+
+        <TextView
+            android:id="@+id/bearing_value_text_main_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:text="@string/default_float_value"
+            app:layout_column="3"
+            app:layout_columnWeight="1"
+            app:layout_row="1" />
+
+    </android.support.v7.widget.GridLayout>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/checkpoints_recycler_view_main_activity"
         android:layout_width="0dp"
@@ -31,6 +134,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_main_activity" />
+        app:layout_constraintTop_toBottomOf="@+id/grid_layout_current_location_main_activity" />
 
 </android.support.constraint.ConstraintLayout>
