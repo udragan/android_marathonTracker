@@ -1,7 +1,6 @@
 package com.udragan.android.marathontracker;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -21,7 +20,9 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -42,17 +43,22 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_FINE_LOCATION = 100;
     private static final int REQUEST_CHECK_SETTINGS = 101;
 
-    private RecyclerView mCheckpointsRecyclerView;
-    private CheckpointAdapter mCheckpointAdapter;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
     private TextView mLatitudeView;
     private TextView mLongitudeView;
     private TextView mSpeedView;
     private TextView mBearingView;
+    private RecyclerView mCheckpointsRecyclerView;
+    private CheckpointAdapter mCheckpointAdapter;
+
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private LocationRequest mLocationRequest;
+    private boolean mIsRequestingLocationUpdates;
 
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
     private OnFailureListener mLocationSettingsFailureListener;
     private OnSuccessListener<Location> mLocationSuccessListener;
+
+    private LocationCallback mLocationCallback;
 
     // AppCompatActivity ************************************************************************************************
 
@@ -81,11 +87,33 @@ public class MainActivity extends AppCompatActivity {
         mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
 
+        // initially request location updates
+        mIsRequestingLocationUpdates = true;
+
         defineListeners();
+        defineCallbacks();
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
 
         setupLocationProviderClient();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mIsRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mIsRequestingLocationUpdates) {
+            stopLocationUpdates();
+        }
     }
 
     @Override
@@ -100,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     setupLocationProviderClient();
                 } else {
-                    // permission denied, boo! Disable the
+                    // permission denied! Disable the
                     // functionality that depends on this permission.
                     String toastMessage = getResources().getString(R.string.toast_location_permission_denied);
                     Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
@@ -128,9 +156,6 @@ public class MainActivity extends AppCompatActivity {
         mLocationSettingsSuccessListener = new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                // All location settings are satisfied. The client can initialize
-                // location requests here.
-                // ...
                 //noinspection MissingPermission
                 mFusedLocationProviderClient.getLastLocation()
                         .addOnSuccessListener(MainActivity.this, mLocationSuccessListener);
@@ -169,10 +194,7 @@ public class MainActivity extends AppCompatActivity {
                 if (location != null) {
                     Log.d(TAG, String.format("Last location triggered, lat: %f, lon: %f",
                             location.getLatitude(), location.getLongitude()));
-                    mLatitudeView.setText(String.valueOf(location.getLatitude()));
-                    mLongitudeView.setText(String.valueOf(location.getLongitude()));
-                    mSpeedView.setText(String.valueOf(location.getSpeed()));
-                    mBearingView.setText(String.valueOf(location.getBearing()));
+                    updateCurrentLocation(location);
                 } else {
                     String toastMessage = getResources().getString(R.string.toast_location_stale);
                     Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
@@ -182,7 +204,20 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    @TargetApi(23)
+    private void defineCallbacks() {
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                Log.d(TAG, String.format("Update location callback for %d locations.",
+                        locationResult.getLocations().size()));
+
+                for (Location location : locationResult.getLocations()) {
+                    updateCurrentLocation(location);
+                }
+            }
+        };
+    }
+
     private void setupLocationProviderClient() {
         int permissionAccessFineLocation = ActivityCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
@@ -199,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkLocationSettingsSufficient() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(createLocationRequest());
+                .addLocationRequest(getLocationRequest());
 
         SettingsClient settingsClient = LocationServices.getSettingsClient(MainActivity.this);
         settingsClient.checkLocationSettings(builder.build())
@@ -207,11 +242,32 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(MainActivity.this, mLocationSettingsFailureListener);
     }
 
-    private LocationRequest createLocationRequest() {
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        return locationRequest;
+    private LocationRequest getLocationRequest() {
+        if (mLocationRequest == null) {
+            mLocationRequest = new LocationRequest();
+            mLocationRequest.setInterval(10000);
+            mLocationRequest.setFastestInterval(5000);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        }
+
+        return mLocationRequest;
+    }
+
+    private void startLocationUpdates() {
+        //noinspection MissingPermission
+        mFusedLocationProviderClient.requestLocationUpdates(getLocationRequest(),
+                mLocationCallback,
+                null);
+    }
+
+    private void stopLocationUpdates() {
+        mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
+    }
+
+    private void updateCurrentLocation(Location location) {
+        mLatitudeView.setText(String.valueOf(location.getLatitude()));
+        mLongitudeView.setText(String.valueOf(location.getLongitude()));
+        mSpeedView.setText(String.valueOf(location.getSpeed()));
+        mBearingView.setText(String.valueOf(location.getBearing()));
     }
 }
