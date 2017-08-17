@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         mLatitudeView.setText(String.valueOf(location.getLatitude()));
         mLongitudeView.setText(String.valueOf(location.getLongitude()));
         mSpeedView.setText(String.valueOf(location.getSpeed()));
-        mBearingView.setText(String.valueOf(location.getBearing()));
+        mBearingView.setText(getBearingDisplayText(location.getBearing(), location.getSpeed()));
     }
 
     private void defineSpeedAndBearing(Location location) {
@@ -299,5 +299,43 @@ public class MainActivity extends AppCompatActivity {
                 location.setBearing(results[1]);
             }
         }
+    }
+
+    @NonNull
+    private String getBearingDisplayText(float bearing, double distance) {
+        if (distance == 0) {
+            return getString(R.string.not_applicable);
+        }
+
+        int quadrant = (int) Math.floor(bearing / 22.5);
+
+        switch (quadrant) {
+            case 1:
+            case 2:
+                return getString(R.string.north_east_abbr);
+            case 3:
+            case 4:
+                return getString(R.string.north_abbr);
+            case 5:
+            case 6:
+                return getString(R.string.north_west_abbr);
+            case 7:
+            case 8:
+                return getString(R.string.west_abbr);
+            case 9:
+            case 10:
+                return getString(R.string.south_west_abbr);
+            case 11:
+            case 12:
+                return getString(R.string.south_abbr);
+            case 13:
+            case 14:
+                return getString(R.string.south_east_abbr);
+            case 15:
+            case 0:
+                return getString(R.string.east_abbr);
+        }
+
+        return getString(R.string.not_applicable);
     }
 }

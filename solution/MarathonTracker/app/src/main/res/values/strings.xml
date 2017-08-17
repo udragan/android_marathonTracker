@@ -2,10 +2,19 @@
     <!-- application -->
     <string name="app_name">Marathon Tracker</string>
     <string name="default_float_value">0.0</string>
+    <string name="not_applicable">N/A</string>
     <string name="latitude">latitude</string>
     <string name="longitude">longitude</string>
     <string name="speed">speed</string>
     <string name="bearing">bearing</string>
+    <string name="east_abbr">E</string>
+    <string name="west_abbr">W</string>
+    <string name="north_abbr">N</string>
+    <string name="south_abbr">S</string>
+    <string name="north_east_abbr">NE</string>
+    <string name="north_west_abbr">NW</string>
+    <string name="south_east_abbr">SE</string>
+    <string name="south_west_abbr">SW</string>
 
     <!-- toast messages -->
     <string name="toast_location_stale">Last known location is stale!</string>
