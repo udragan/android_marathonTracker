@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private LocationRequest mLocationRequest;
     private boolean mIsRequestingLocationUpdates;
+    private Location mLastKnownLocation;
 
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
     private OnFailureListener mLocationSettingsFailureListener;
@@ -265,9 +266,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateCurrentLocation(Location location) {
+        defineSpeedAndBearing(location);
+        mLastKnownLocation = location;
+
         mLatitudeView.setText(String.valueOf(location.getLatitude()));
         mLongitudeView.setText(String.valueOf(location.getLongitude()));
         mSpeedView.setText(String.valueOf(location.getSpeed()));
         mBearingView.setText(String.valueOf(location.getBearing()));
+    }
+
+    private void defineSpeedAndBearing(Location location) {
+        if (mLastKnownLocation != null
+                && (!location.hasSpeed() || !location.hasBearing())) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            double lastLatitude = mLastKnownLocation.getLatitude();
+            double lastLongitude = mLastKnownLocation.getLongitude();
+
+            float[] results = new float[2];
+            Location.distanceBetween(latitude, longitude, lastLatitude, lastLongitude, results);
+
+            if (!location.hasSpeed()) {
+                double distance = results[0];
+                double timeSecs = (location.getElapsedRealtimeNanos() - mLastKnownLocation.getElapsedRealtimeNanos()) / 1e9;
+
+                if (timeSecs != 0) {
+                    location.setSpeed(Math.round(distance / timeSecs));
+                }
+            }
+
+            if (!location.hasBearing()) {
+                location.setBearing(results[1]);
+            }
+        }
     }
 }
