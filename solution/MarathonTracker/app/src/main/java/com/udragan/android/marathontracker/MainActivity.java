@@ -34,6 +34,7 @@ import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -269,8 +270,8 @@ public class MainActivity extends AppCompatActivity {
         defineSpeedAndBearing(location);
         mLastKnownLocation = location;
 
-        mLatitudeView.setText(String.valueOf(location.getLatitude()));
-        mLongitudeView.setText(String.valueOf(location.getLongitude()));
+        mLatitudeView.setText(String.format(Locale.getDefault(), "%.5f", location.getLatitude()));
+        mLongitudeView.setText(String.format(Locale.getDefault(), "%.5f", location.getLongitude()));
         mSpeedView.setText(String.valueOf(location.getSpeed()));
         mBearingView.setText(getBearingDisplayText(location.getBearing(), location.getSpeed()));
     }

@@ -46,6 +46,7 @@
             android:layout_marginLeft="@dimen/element_horizontal_margin"
             android:layout_marginRight="@dimen/element_horizontal_margin"
             android:text="@string/default_float_value"
+            android:textAlignment="textEnd"
             app:layout_column="1"
             app:layout_columnWeight="1"
             app:layout_row="0" />
@@ -69,6 +70,7 @@
             android:layout_marginLeft="@dimen/element_horizontal_margin"
             android:layout_marginRight="@dimen/element_horizontal_margin"
             android:text="@string/default_float_value"
+            android:textAlignment="textEnd"
             app:layout_column="1"
             app:layout_columnWeight="1"
             app:layout_row="1" />
