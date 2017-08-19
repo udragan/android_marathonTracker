@@ -1,6 +1,7 @@
 <resources>
     <!-- application -->
     <string name="app_name">Marathon Tracker</string>
+    <string name="request_location_updates">Request location updates</string>
     <string name="default_float_value">0.0</string>
     <string name="not_applicable">N/A</string>
     <string name="latitude">latitude</string>

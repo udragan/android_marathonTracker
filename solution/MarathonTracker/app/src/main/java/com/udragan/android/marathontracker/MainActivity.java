@@ -13,6 +13,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -88,9 +90,6 @@ public class MainActivity extends AppCompatActivity {
         mCheckpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
         mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
-
-        // initially request location updates
-        mIsRequestingLocationUpdates = true;
 
         defineListeners();
         defineCallbacks();
@@ -338,5 +337,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return getString(R.string.not_applicable);
+    }
+
+    public void switchRequestLocationUpdates(View view) {
+        Switch requestLocationUpdates = (Switch) view;
+        mIsRequestingLocationUpdates = requestLocationUpdates.isChecked();
+
+        if (mIsRequestingLocationUpdates) {
+            startLocationUpdates();
+        } else {
+            stopLocationUpdates();
+        }
     }
 }
