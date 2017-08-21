@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_PERMISSION_FINE_LOCATION = 100;
     private static final int REQUEST_CHECK_SETTINGS = 101;
+    private static final String REQUESTING_LOCATION_UPDATES_KEY = "requestingLocationUpdates";
 
     private TextView mLatitudeView;
     private TextView mLongitudeView;
@@ -114,6 +115,21 @@ public class MainActivity extends AppCompatActivity {
 
         if (mIsRequestingLocationUpdates) {
             stopLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mIsRequestingLocationUpdates);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mIsRequestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY);
         }
     }
 
