@@ -138,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         switch (requestCode) {
             case REQUEST_PERMISSION_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -159,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
                                     int resultCode,
                                     Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         switch (requestCode) {
             case REQUEST_CHECK_SETTINGS:
                 if (resultCode == RESULT_OK) {
@@ -183,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 int statusCode = ((ApiException) e).getStatusCode();
+
                 switch (statusCode) {
                     case CommonStatusCodes.RESOLUTION_REQUIRED:
                         // Location settings are not satisfied, but this can be fixed
@@ -243,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_PERMISSION_FINE_LOCATION);
+
             return;
         }
 

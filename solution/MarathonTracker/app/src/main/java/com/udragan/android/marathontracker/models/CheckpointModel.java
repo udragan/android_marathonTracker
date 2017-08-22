@@ -5,7 +5,7 @@ package com.udragan.android.marathontracker.models;
  */
 public class CheckpointModel {
 
-    // fields ***********************************************************************************************************
+    // members **********************************************************************************************************
 
     private double mLatitude;
     private double mLongitude;
