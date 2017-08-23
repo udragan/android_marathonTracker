@@ -34,6 +34,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.models.CheckpointModel;
+import com.udragan.android.marathontracker.services.GeofenceIntentService;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -364,9 +365,9 @@ public class MainActivity extends AppCompatActivity {
         mIsRequestingLocationUpdates = requestLocationUpdates.isChecked();
 
         if (mIsRequestingLocationUpdates) {
-            startLocationUpdates();
+            GeofenceIntentService.startActionRegisterGeofences(this, "", "");
         } else {
-            stopLocationUpdates();
+            GeofenceIntentService.startActionUnregisterGeofences(this, "", "");
         }
     }
 }
