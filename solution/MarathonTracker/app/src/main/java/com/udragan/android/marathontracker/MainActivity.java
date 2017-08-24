@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationCallback mLocationCallback;
 
-    // AppCompatActivity ************************************************************************************************
+    // overrides ********************************************************************************************************
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

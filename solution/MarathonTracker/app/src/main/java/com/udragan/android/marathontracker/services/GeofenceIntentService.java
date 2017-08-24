@@ -22,6 +22,9 @@ public class GeofenceIntentService extends IntentService {
 
     // constructors *****************************************************************************************************
 
+    /**
+     * Initializes a new instance of {@link com.udragan.android.marathontracker.services.GeofenceIntentService} class.
+     */
     public GeofenceIntentService() {
         super(SERVICE_NAME);
     }
