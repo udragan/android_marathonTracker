@@ -17,7 +17,18 @@
     <string name="south_east_abbr">SE</string>
     <string name="south_west_abbr">SW</string>
 
+    <!-- geofence error messages -->
+
+    <string name="geofence_error_not_available">Geofence service is not available at the moment.</string>
+    <string name="geofence_error_too_many_geofences">Too many geofences registered by the application.</string>
+    <string name="geofence_error_too_many_pending_intents">Too many PendingIntents provided to addGeofences() call.</string>
+    <string name="geofence_error_unknown_error">Unknown error: Geofence service not available.</string>
+
     <!-- toast messages -->
     <string name="toast_location_stale">Last known location is stale!</string>
     <string name="toast_location_permission_denied">Location permission denied!</string>
+    <string name="toast_add_geofence_successful">Successfully added geofences.</string>
+    <string name="toast_add_geofence_failed">Failed to add geofences!</string>
+    <string name="toast_remove_geofence_successful">Successfully removed geofences.</string>
+    <string name="toast_remove_geofence_failed">Failed to remove geofences!</string>
 </resources>

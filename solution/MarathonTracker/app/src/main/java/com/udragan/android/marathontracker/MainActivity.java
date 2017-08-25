@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -35,7 +34,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.models.CheckpointModel;
-import com.udragan.android.marathontracker.services.GeofenceIntentService;
+import com.udragan.android.marathontracker.services.TrackerService;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -362,11 +361,12 @@ public class MainActivity extends AppCompatActivity {
     public void switchRequestLocationUpdates(View view) {
         Switch requestLocationUpdates = (Switch) view;
         mIsRequestingLocationUpdates = requestLocationUpdates.isChecked();
+        Intent trackerServiceIntent = new Intent(this, TrackerService.class);
 
         if (mIsRequestingLocationUpdates) {
-            GeofenceIntentService.startActionRegisterGeofences(this, "", "");
+            startService(trackerServiceIntent);
         } else {
-            GeofenceIntentService.startActionUnregisterGeofences(this, "", "");
+            stopService(trackerServiceIntent);
         }
     }
 }

@@ -20,12 +20,10 @@
         </activity>
 
         <service
-            android:name=".services.GeofenceIntentService"
-            android:exported="false" />
+            android:name=".services.GeofenceIntentService" />
 
         <service
-            android:name=".services.TrackerService"
-            android:exported="false" />
+            android:name=".services.TrackerService" />
 
     </application>
 </manifest>

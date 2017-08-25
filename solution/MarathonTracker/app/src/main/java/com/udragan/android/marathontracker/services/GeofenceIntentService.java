@@ -35,7 +35,8 @@ public class GeofenceIntentService extends IntentService {
     protected void onHandleIntent(@Nullable Intent intent) {
         Log.d(TAG, "OnHandleIntent triggered");
 
-        if (intent != null) {
+        if (intent != null
+                && intent.getAction() != null) {
             final String action = intent.getAction();
             Log.d(TAG, String.format("\t for action %s", action));
 
@@ -45,6 +46,7 @@ public class GeofenceIntentService extends IntentService {
                     break;
                 case ACTION_UNREGISTER_GEOFENCES:
                     unregisterGeofences();
+                    break;
             }
         }
 
