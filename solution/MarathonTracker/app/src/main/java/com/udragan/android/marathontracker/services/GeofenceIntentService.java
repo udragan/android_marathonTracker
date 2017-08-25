@@ -6,11 +6,14 @@ import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
+
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  */
-public class GeofenceIntentService extends IntentService {
+public class GeofenceIntentService extends IntentService
+        implements IService {
 
     // members **********************************************************************************************************
 

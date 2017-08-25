@@ -20,16 +20,18 @@ import com.google.android.gms.tasks.Task;
 import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
+import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 
 /**
  * A background service for managing the geofencing client.
  */
-public class TrackerService extends Service {
+public class TrackerService extends Service
+        implements IService {
 
     // members **********************************************************************************************************
 
     private static final String TAG = TrackerService.class.getSimpleName();
-    private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = 2001;
+    private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 1;
 
     private Context mContext;
     private GeofencingClient mGeofencingClient;
@@ -55,10 +57,10 @@ public class TrackerService extends Service {
         super.onStartCommand(intent, flags, startId);
         Log.d(TAG, "onStartCommand.");
 
-        mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
+        mGeofencingClient = LocationServices.getGeofencingClient(mContext);
 
         // TODO: implement consistent permission checks!
-        int permission = ActivityCompat.checkSelfPermission(TrackerService.this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int permission = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION);
 
         if (permission == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
@@ -123,9 +125,9 @@ public class TrackerService extends Service {
     }
 
     private PendingIntent getGeofencingPendingIntent() {
-        Intent intent = new Intent(TrackerService.this, GeofenceIntentService.class);
+        Intent intent = new Intent(mContext, GeofenceIntentService.class);
 
-        return PendingIntent.getService(TrackerService.this,
+        return PendingIntent.getService(mContext,
                 REQUEST_CODE_GEOFENCE_INTENT_SERVICE,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
