@@ -33,6 +33,7 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
+import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.services.GeofenceIntentService;
 
@@ -149,8 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // permission denied! Disable the
                     // functionality that depends on this permission.
-                    String toastMessage = getResources().getString(R.string.toast_location_permission_denied);
-                    Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
+                    Toaster.showShort(MainActivity.this, R.string.toast_location_permission_denied);
                 }
             }
         }
@@ -217,8 +217,7 @@ public class MainActivity extends AppCompatActivity {
                             location.getLatitude(), location.getLongitude()));
                     updateCurrentLocation(location);
                 } else {
-                    String toastMessage = getResources().getString(R.string.toast_location_stale);
-                    Toast.makeText(MainActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
+                    Toaster.showShort(MainActivity.this, R.string.toast_location_stale);
                     Log.d(TAG, "Last location triggered but received location is null!");
                 }
             }
