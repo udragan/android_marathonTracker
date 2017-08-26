@@ -3,7 +3,6 @@ package com.udragan.android.marathontracker.services;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
@@ -33,7 +32,6 @@ public class TrackerService extends Service
     private static final String TAG = TrackerService.class.getSimpleName();
     private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 1;
 
-    private Context mContext;
     private GeofencingClient mGeofencingClient;
 
     private OnCompleteListener<Void> mAddRemoveGeofencesListener;
@@ -45,7 +43,6 @@ public class TrackerService extends Service
      */
     public TrackerService() {
         Log.d(TAG, "constructor.");
-        mContext = TrackerService.this;
 
         defineListeners();
     }
@@ -57,10 +54,10 @@ public class TrackerService extends Service
         super.onStartCommand(intent, flags, startId);
         Log.d(TAG, "onStartCommand.");
 
-        mGeofencingClient = LocationServices.getGeofencingClient(mContext);
+        mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
 
         // TODO: implement consistent permission checks!
-        int permission = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION);
+        int permission = ActivityCompat.checkSelfPermission(TrackerService.this, Manifest.permission.ACCESS_FINE_LOCATION);
 
         if (permission == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
@@ -92,11 +89,11 @@ public class TrackerService extends Service
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toaster.showShort(mContext, R.string.toast_add_geofence_successful);
+                    Toaster.showShort(TrackerService.this, R.string.toast_add_geofence_successful);
                     Log.d(TAG, "Add geofence successful.");
                 } else {
-                    Toaster.showLong(mContext, R.string.toast_add_geofence_failed);
-                    String errorMessage = GeofenceErrorHelper.getErrorString(mContext, task.getException());
+                    Toaster.showLong(TrackerService.this, R.string.toast_add_geofence_failed);
+                    String errorMessage = GeofenceErrorHelper.getErrorString(TrackerService.this, task.getException());
                     Log.w(TAG, errorMessage);
                 }
             }
@@ -125,9 +122,9 @@ public class TrackerService extends Service
     }
 
     private PendingIntent getGeofencingPendingIntent() {
-        Intent intent = new Intent(mContext, GeofenceIntentService.class);
+        Intent intent = new Intent(TrackerService.this, GeofenceIntentService.class);
 
-        return PendingIntent.getService(mContext,
+        return PendingIntent.getService(TrackerService.this,
                 REQUEST_CODE_GEOFENCE_INTENT_SERVICE,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);

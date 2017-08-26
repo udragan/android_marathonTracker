@@ -33,20 +33,22 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
+import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.services.TrackerService;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements IActivity {
 
     // members **********************************************************************************************************
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int REQUEST_PERMISSION_FINE_LOCATION = 100;
-    private static final int REQUEST_CHECK_SETTINGS = 101;
-    private static final String REQUESTING_LOCATION_UPDATES_KEY = "requestingLocationUpdates";
+    private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 1;
+    private static final int REQUEST_CODE_CHECK_SETTINGS = REQUEST_CODE_BASE + 2;
+    private static final String KEY_REQUESTING_LOCATION_UPDATES = "requestingLocationUpdates";
 
     private TextView mLatitudeView;
     private TextView mLongitudeView;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mIsRequestingLocationUpdates);
+        outState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mIsRequestingLocationUpdates);
         super.onSaveInstanceState(outState);
     }
 
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mIsRequestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY);
+            mIsRequestingLocationUpdates = savedInstanceState.getBoolean(KEY_REQUESTING_LOCATION_UPDATES);
         }
     }
 
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case REQUEST_PERMISSION_FINE_LOCATION: {
+            case REQUEST_CODE_PERMISSION_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -162,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS:
+            case REQUEST_CODE_CHECK_SETTINGS:
                 if (resultCode == RESULT_OK) {
                     setupLocationProviderClient();
                 }
@@ -195,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                             // and checkLocationSettingsSufficient the result in onActivityResult().
                             ResolvableApiException resolvable = (ResolvableApiException) e;
                             resolvable.startResolutionForResult(MainActivity.this,
-                                    REQUEST_CHECK_SETTINGS);
+                                    REQUEST_CODE_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException sendEx) {
                             // Ignore the error.
                         }
@@ -244,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         if (permissionAccessFineLocation != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_PERMISSION_FINE_LOCATION);
+                    REQUEST_CODE_PERMISSION_FINE_LOCATION);
 
             return;
         }
