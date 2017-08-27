@@ -57,7 +57,8 @@ public class TrackerService extends Service
         mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
 
         // TODO: implement consistent permission checks!
-        int permission = ActivityCompat.checkSelfPermission(TrackerService.this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int permission = ActivityCompat.checkSelfPermission(TrackerService.this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
 
         if (permission == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
