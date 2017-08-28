@@ -1,13 +1,16 @@
 package com.udragan.android.marathontracker.services;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
@@ -16,6 +19,7 @@ import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.udragan.android.marathontracker.MainActivity;
 import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
@@ -30,8 +34,10 @@ public class TrackerService extends Service
     // members **********************************************************************************************************
 
     private static final String TAG = TrackerService.class.getSimpleName();
-    private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 1;
+    private static final int REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION = REQUEST_CODE_BASE + 1;
+    private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 2;
 
+    private NotificationManager mNotificationManager;
     private GeofencingClient mGeofencingClient;
 
     private OnCompleteListener<Void> mAddRemoveGeofencesListener;
@@ -43,7 +49,6 @@ public class TrackerService extends Service
      */
     public TrackerService() {
         Log.d(TAG, "constructor.");
-
         defineListeners();
     }
 
@@ -54,6 +59,7 @@ public class TrackerService extends Service
         super.onStartCommand(intent, flags, startId);
         Log.d(TAG, "onStartCommand.");
 
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
 
         // TODO: implement consistent permission checks!
@@ -65,6 +71,8 @@ public class TrackerService extends Service
                     .addOnCompleteListener(mAddRemoveGeofencesListener);
         }
 
+        sendStickyNotification();
+
         return START_STICKY;
     }
 
@@ -75,6 +83,7 @@ public class TrackerService extends Service
         mGeofencingClient.removeGeofences(getGeofencingPendingIntent());
         mGeofencingClient = null;
 
+        cancelStickyNotification();
         Log.d(TAG, "onDestroy.");
     }
 
@@ -129,5 +138,28 @@ public class TrackerService extends Service
                 REQUEST_CODE_GEOFENCE_INTENT_SERVICE,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void sendStickyNotification() {
+        Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
+        PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
+                REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION,
+                mainActivityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(TrackerService.this)
+                .setContentTitle("Marathon Tracker")
+                .setContentText("service running")
+                .setContentIntent(mainActivityPendingIntent)
+                .setSmallIcon(R.drawable.ic_notification_small)
+                .setOngoing(true)
+                .setAutoCancel(false);
+
+        mNotificationManager.notify(REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION,
+                notificationBuilder.build());
+    }
+
+    private void cancelStickyNotification() {
+        mNotificationManager.cancel(REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION);
     }
 }
