@@ -3,6 +3,7 @@ package com.udragan.android.marathontracker;
 import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
+import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.services.TrackerService;
@@ -54,12 +56,12 @@ public class MainActivity extends AppCompatActivity
     private TextView mLongitudeView;
     private TextView mSpeedView;
     private TextView mBearingView;
+    private Switch mIsGeofencingSwitch;
     private RecyclerView mCheckpointsRecyclerView;
     private CheckpointAdapter mCheckpointAdapter;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private LocationRequest mLocationRequest;
-    private boolean mIsRequestingLocationUpdates;
     private Location mLastKnownLocation;
 
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity
         mLongitudeView = (TextView) findViewById(R.id.longitude_value_text_main_activity);
         mSpeedView = (TextView) findViewById(R.id.speed_value_text_main_activity);
         mBearingView = (TextView) findViewById(R.id.bearing_value_text_main_activity);
+        mIsGeofencingSwitch = (Switch) findViewById(R.id.request_location_updates_switch);
         Toolbar appBar = (Toolbar) findViewById(R.id.toolbar_main_activity);
         setSupportActionBar(appBar);
 
@@ -98,6 +101,8 @@ public class MainActivity extends AppCompatActivity
         defineListeners();
         defineCallbacks();
 
+        mIsGeofencingSwitch.setChecked(getIsGeofencingPreference());
+
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
 
         setupLocationProviderClient();
@@ -106,34 +111,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (mIsRequestingLocationUpdates) {
-            startLocationUpdates();
-        }
+        startLocationUpdates();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
-        if (mIsRequestingLocationUpdates) {
-            stopLocationUpdates();
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mIsRequestingLocationUpdates);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            mIsRequestingLocationUpdates = savedInstanceState.getBoolean(KEY_REQUESTING_LOCATION_UPDATES);
-        }
+        stopLocationUpdates();
     }
 
     @Override
@@ -168,6 +152,20 @@ public class MainActivity extends AppCompatActivity
                 if (resultCode == RESULT_OK) {
                     setupLocationProviderClient();
                 }
+        }
+    }
+
+    // public methods ***************************************************************************************************
+
+    public void switchRequestLocationUpdates(View view) {
+        Switch isGeofencingSwitch = (Switch) view;
+        saveIsGeofencingPreference(isGeofencingSwitch.isChecked());
+        Intent trackerServiceIntent = new Intent(this, TrackerService.class);
+
+        if (isGeofencingSwitch.isChecked()) {
+            startService(trackerServiceIntent);
+        } else {
+            stopService(trackerServiceIntent);
         }
     }
 
@@ -229,7 +227,7 @@ public class MainActivity extends AppCompatActivity
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                Log.d(TAG, String.format("Update location callback for %d locations.",
+                Log.d(TAG, String.format("Update location callback triggered.",
                         locationResult.getLocations().size()));
 
                 for (Location location : locationResult.getLocations()) {
@@ -360,15 +358,15 @@ public class MainActivity extends AppCompatActivity
         return getString(R.string.not_applicable);
     }
 
-    public void switchRequestLocationUpdates(View view) {
-        Switch requestLocationUpdates = (Switch) view;
-        mIsRequestingLocationUpdates = requestLocationUpdates.isChecked();
-        Intent trackerServiceIntent = new Intent(this, TrackerService.class);
+    private boolean getIsGeofencingPreference() {
+        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
+        return preferences.getBoolean(Constants.GEOFENCING_PREFERENCE_KEY, false);
+    }
 
-        if (mIsRequestingLocationUpdates) {
-            startService(trackerServiceIntent);
-        } else {
-            stopService(trackerServiceIntent);
-        }
+    private void saveIsGeofencingPreference(boolean isGeofencing) {
+        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(Constants.GEOFENCING_PREFERENCE_KEY, isGeofencing);
+        editor.apply();
     }
 }
