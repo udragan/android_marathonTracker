@@ -16,6 +16,7 @@
     <string name="north_west_abbr">NW</string>
     <string name="south_east_abbr">SE</string>
     <string name="south_west_abbr">SW</string>
+    <string name="checkpoint_achieved">Checkpoint achieved</string>
 
     <!-- geofence error messages -->
 

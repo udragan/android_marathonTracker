@@ -68,6 +68,11 @@ public class GeofenceIntentService extends IntentService
         }
 
         //TODO: update db
+
+        updateNotification();
+    }
+
+    private void updateNotification() {
         Intent mainActivityIntent = new Intent(GeofenceIntentService.this,
                 MainActivity.class);
         PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(GeofenceIntentService.this,
@@ -76,7 +81,7 @@ public class GeofenceIntentService extends IntentService
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(GeofenceIntentService.this)
-                .setContentTitle("Marathon Tracker")
+                .setContentTitle(getString(R.string.checkpoint_achieved))
                 .setContentText(System.currentTimeMillis() + " : geofence triggered.")
                 .setContentIntent(mainActivityPendingIntent)
                 .setSmallIcon(R.drawable.ic_notification_small)
