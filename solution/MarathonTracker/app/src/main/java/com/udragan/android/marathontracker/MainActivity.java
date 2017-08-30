@@ -47,16 +47,17 @@ public class MainActivity extends AppCompatActivity
 
     // members **********************************************************************************************************
 
+    public static final int REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION = REQUEST_CODE_BASE + 1;
+
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 1;
-    private static final int REQUEST_CODE_CHECK_SETTINGS = REQUEST_CODE_BASE + 2;
+    private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 10;
+    private static final int REQUEST_CODE_CHECK_SETTINGS = REQUEST_CODE_BASE + 11;
     private static final String KEY_REQUESTING_LOCATION_UPDATES = "requestingLocationUpdates";
 
     private TextView mLatitudeView;
     private TextView mLongitudeView;
     private TextView mSpeedView;
     private TextView mBearingView;
-    private Switch mIsGeofencingSwitch;
     private RecyclerView mCheckpointsRecyclerView;
     private CheckpointAdapter mCheckpointAdapter;
 
@@ -81,7 +82,6 @@ public class MainActivity extends AppCompatActivity
         mLongitudeView = (TextView) findViewById(R.id.longitude_value_text_main_activity);
         mSpeedView = (TextView) findViewById(R.id.speed_value_text_main_activity);
         mBearingView = (TextView) findViewById(R.id.bearing_value_text_main_activity);
-        mIsGeofencingSwitch = (Switch) findViewById(R.id.request_location_updates_switch);
         Toolbar appBar = (Toolbar) findViewById(R.id.toolbar_main_activity);
         setSupportActionBar(appBar);
 
@@ -101,7 +101,9 @@ public class MainActivity extends AppCompatActivity
         defineListeners();
         defineCallbacks();
 
-        mIsGeofencingSwitch.setChecked(getIsGeofencingPreference());
+        //TODO: check for permissions appropriately
+        Switch geofencingSwitch = (Switch) findViewById(R.id.request_location_updates_switch);
+        geofencingSwitch.setChecked(getIsTrackingPreference());
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
 
@@ -111,12 +113,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        //TODO: check for permissions prior to starting updates
         startLocationUpdates();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        //TODO: check for permissions prior to stoping updates
         stopLocationUpdates();
     }
 
@@ -133,7 +137,7 @@ public class MainActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     setupLocationProviderClient();
                 } else {
-                    // permission denied! Disable the
+                    // TODO: permission denied! Disable the
                     // functionality that depends on this permission.
                     Toaster.showShort(MainActivity.this, R.string.toast_location_permission_denied);
                 }
@@ -159,7 +163,7 @@ public class MainActivity extends AppCompatActivity
 
     public void switchRequestLocationUpdates(View view) {
         Switch isGeofencingSwitch = (Switch) view;
-        saveIsGeofencingPreference(isGeofencingSwitch.isChecked());
+        saveIsTrackingPreference(isGeofencingSwitch.isChecked());
         Intent trackerServiceIntent = new Intent(this, TrackerService.class);
 
         if (isGeofencingSwitch.isChecked()) {
@@ -358,15 +362,15 @@ public class MainActivity extends AppCompatActivity
         return getString(R.string.not_applicable);
     }
 
-    private boolean getIsGeofencingPreference() {
+    private boolean getIsTrackingPreference() {
         SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        return preferences.getBoolean(Constants.GEOFENCING_PREFERENCE_KEY, false);
+        return preferences.getBoolean(Constants.PREFERENCE_KEY_TRACKING, false);
     }
 
-    private void saveIsGeofencingPreference(boolean isGeofencing) {
+    private void saveIsTrackingPreference(boolean isGeofencing) {
         SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(Constants.GEOFENCING_PREFERENCE_KEY, isGeofencing);
+        editor.putBoolean(Constants.PREFERENCE_KEY_TRACKING, isGeofencing);
         editor.apply();
     }
 }

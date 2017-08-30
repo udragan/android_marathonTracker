@@ -27,5 +27,5 @@ public class Constants {
     /**
      * Is tracker service started reference key.
      */
-    public static final String GEOFENCING_PREFERENCE_KEY = "IS_GEOFENCING";
+    public static final String PREFERENCE_KEY_TRACKING = "IS_TRACKING";
 }

@@ -25,6 +25,8 @@ import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 
+//import static com.udragan.android.marathontracker.MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION;
+
 /**
  * A background service for managing the geofencing client.
  */
@@ -34,11 +36,11 @@ public class TrackerService extends Service
     // members **********************************************************************************************************
 
     private static final String TAG = TrackerService.class.getSimpleName();
-    private static final int REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION = REQUEST_CODE_BASE + 1;
     private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 2;
 
     private NotificationManager mNotificationManager;
     private GeofencingClient mGeofencingClient;
+    private PendingIntent mGeofenceIntentServicePendingIntent;
 
     private OnCompleteListener<Void> mAddRemoveGeofencesListener;
 
@@ -69,9 +71,8 @@ public class TrackerService extends Service
         if (permission == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
                     .addOnCompleteListener(mAddRemoveGeofencesListener);
+            sendStickyNotification();
         }
-
-        sendStickyNotification();
 
         return START_STICKY;
     }
@@ -80,9 +81,10 @@ public class TrackerService extends Service
     public void onDestroy() {
         super.onDestroy();
 
-        mGeofencingClient.removeGeofences(getGeofencingPendingIntent());
+        mGeofencingClient.removeGeofences(getGeofencingPendingIntent())
+                .addOnCompleteListener(mAddRemoveGeofencesListener);
         mGeofencingClient = null;
-
+        //TODO: cancel only if it is started
         cancelStickyNotification();
         Log.d(TAG, "onDestroy.");
     }
@@ -112,38 +114,42 @@ public class TrackerService extends Service
 
     @NonNull
     private GeofencingRequest getGeofencingRequest() {
-        // TODO: hardcoded geofence for testing, 53.2182, 6.57861
+        // TODO: hardcoded geofence for testing, 53.219193, 6.567972
         // will be provided from mainActivity upon starting the service/turning on the tracker switch.
         // transitionTypes and initialTrigger will be refined.
         Geofence geofence = new Geofence.Builder()
                 .setRequestId("testGeofenceId")
-                .setCircularRegion(53.2182, 6.57861, 50)
-                .setExpirationDuration(60 * 60 * 1000)
+                .setCircularRegion(53.219193, 6.567972, 100)
+                .setExpirationDuration(2 * 60 * 1000)
                 .setTransitionTypes(GeofencingRequest.INITIAL_TRIGGER_ENTER |
                         GeofencingRequest.INITIAL_TRIGGER_EXIT)
                 .build();
         GeofencingRequest.Builder requestBuilder = new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER |
-                        GeofencingRequest.INITIAL_TRIGGER_EXIT |
-                        GeofencingRequest.INITIAL_TRIGGER_DWELL)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
                 .addGeofence(geofence);
 
         return requestBuilder.build();
     }
 
     private PendingIntent getGeofencingPendingIntent() {
+        if (mGeofenceIntentServicePendingIntent != null) {
+            return mGeofenceIntentServicePendingIntent;
+        }
+
         Intent intent = new Intent(TrackerService.this, GeofenceIntentService.class);
 
-        return PendingIntent.getService(TrackerService.this,
+        mGeofenceIntentServicePendingIntent = PendingIntent.getService(TrackerService.this,
                 REQUEST_CODE_GEOFENCE_INTENT_SERVICE,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return mGeofenceIntentServicePendingIntent;
     }
 
     private void sendStickyNotification() {
         Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
         PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
-                REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION,
+                MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
                 mainActivityIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -155,11 +161,11 @@ public class TrackerService extends Service
                 .setOngoing(true)
                 .setAutoCancel(false);
 
-        mNotificationManager.notify(REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION,
+        mNotificationManager.notify(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
                 notificationBuilder.build());
     }
 
     private void cancelStickyNotification() {
-        mNotificationManager.cancel(REQUSET_CODE_MAIN_ACTIVITY_NOTIFICATION);
+        mNotificationManager.cancel(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION);
     }
 }
