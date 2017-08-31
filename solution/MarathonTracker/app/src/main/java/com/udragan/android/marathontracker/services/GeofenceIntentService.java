@@ -29,8 +29,6 @@ public class GeofenceIntentService extends IntentService
     private static final String TAG = GeofenceIntentService.class.getSimpleName();
     private static final String SERVICE_NAME = "GeofenceIntentService";
 
-    private Context mContext;
-
     // constructors *****************************************************************************************************
 
     /**
@@ -38,7 +36,6 @@ public class GeofenceIntentService extends IntentService
      */
     public GeofenceIntentService() {
         super(SERVICE_NAME);
-        mContext = GeofenceIntentService.this;
     }
 
     // overrides ********************************************************************************************************

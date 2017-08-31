@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 10;
     private static final int REQUEST_CODE_CHECK_SETTINGS = REQUEST_CODE_BASE + 11;
-    private static final String KEY_REQUESTING_LOCATION_UPDATES = "requestingLocationUpdates";
 
     private TextView mLatitudeView;
     private TextView mLongitudeView;
@@ -231,8 +230,7 @@ public class MainActivity extends AppCompatActivity
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                Log.d(TAG, String.format("Update location callback triggered.",
-                        locationResult.getLocations().size()));
+                Log.d(TAG, "Update location callback triggered.");
 
                 for (Location location : locationResult.getLocations()) {
                     updateCurrentLocation(location);
