@@ -33,12 +33,12 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar_main_activity">
 
         <Switch
-            android:id="@+id/request_location_updates_switch"
+            android:id="@+id/is_tracking_switch"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="switchRequestLocationUpdates"
-            android:text="@string/request_location_updates" />
+            android:onClick="switchIsTracking"
+            android:text="@string/tracker_enabled" />
 
     </LinearLayout>
 

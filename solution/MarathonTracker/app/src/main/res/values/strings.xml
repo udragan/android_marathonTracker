@@ -1,7 +1,7 @@
 <resources>
     <!-- application -->
     <string name="app_name">Marathon Tracker</string>
-    <string name="request_location_updates">Request location updates</string>
+    <string name="tracker_enabled">Tracking</string>
     <string name="default_float_value">0.0</string>
     <string name="not_applicable">N/A</string>
     <string name="latitude">latitude</string>
@@ -28,6 +28,8 @@
     <!-- toast messages -->
     <string name="toast_location_stale">Last known location is stale!</string>
     <string name="toast_location_permission_denied">Location permission denied!</string>
+    <string name="toast_location_services_off">Location services turned off!</string>
+    <string name="toast_location_services_settings_change_unavailable">Location services settings change not possible!</string>
     <string name="toast_add_geofence_successful">Successfully added geofences.</string>
     <string name="toast_add_geofence_failed">Failed to add geofences!</string>
     <string name="toast_remove_geofence_successful">Successfully removed geofences.</string>

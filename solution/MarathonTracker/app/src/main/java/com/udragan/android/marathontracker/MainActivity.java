@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -51,8 +52,9 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 10;
-    private static final int REQUEST_CODE_CHECK_SETTINGS = REQUEST_CODE_BASE + 11;
+    private static final int REQUEST_CODE_CHECK_LOCATION_SETTINGS = REQUEST_CODE_BASE + 11;
 
+    private Switch mTrackingSwitch;
     private TextView mLatitudeView;
     private TextView mLongitudeView;
     private TextView mSpeedView;
@@ -67,7 +69,6 @@ public class MainActivity extends AppCompatActivity
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
     private OnFailureListener mLocationSettingsFailureListener;
     private OnSuccessListener<Location> mLocationSuccessListener;
-
     private LocationCallback mLocationCallback;
 
     // overrides ********************************************************************************************************
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mTrackingSwitch = (Switch) findViewById(R.id.is_tracking_switch);
         mLatitudeView = (TextView) findViewById(R.id.latitude_value_text_main_activity);
         mLongitudeView = (TextView) findViewById(R.id.longitude_value_text_main_activity);
         mSpeedView = (TextView) findViewById(R.id.speed_value_text_main_activity);
@@ -97,30 +99,34 @@ public class MainActivity extends AppCompatActivity
         mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
 
-        defineListeners();
-        defineCallbacks();
-
-        //TODO: check for permissions appropriately
-        Switch geofencingSwitch = (Switch) findViewById(R.id.request_location_updates_switch);
-        geofencingSwitch.setChecked(getIsTrackingPreference());
-
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
 
+        defineListeners();
+        defineCallbacks();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         setupLocationProviderClient();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        //TODO: check for permissions prior to starting updates
-        startLocationUpdates();
+
+        if (checkPermissions()) {
+            startLocationUpdates();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        //TODO: check for permissions prior to stoping updates
-        stopLocationUpdates();
+
+        if (checkPermissions()) {
+            stopLocationUpdates();
+        }
     }
 
     @Override
@@ -134,11 +140,15 @@ public class MainActivity extends AppCompatActivity
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setupLocationProviderClient();
+                    Log.d(TAG, String.format("%s permission granted.",
+                            permissions[0]));
+                    requestLocationSettings();
                 } else {
                     // TODO: permission denied! Disable the
                     // functionality that depends on this permission.
-                    Toaster.showShort(MainActivity.this, R.string.toast_location_permission_denied);
+                    Toaster.showLong(MainActivity.this, R.string.toast_location_permission_denied);
+                    Log.w(TAG, String.format("%s permission denied!",
+                            Manifest.permission.ACCESS_FINE_LOCATION));
                 }
             }
         }
@@ -151,25 +161,33 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQUEST_CODE_CHECK_SETTINGS:
+            case REQUEST_CODE_CHECK_LOCATION_SETTINGS:
                 if (resultCode == RESULT_OK) {
+                    Log.d(TAG, "Location services turned on.");
                     setupLocationProviderClient();
+                } else {
+                    //TODO: disable everything because permissions/settings are not satisfied!
+                    Toaster.showLong(MainActivity.this, R.string.toast_location_services_off);
+                    Log.w(TAG, "Location services turned off.");
                 }
         }
     }
 
     // public methods ***************************************************************************************************
 
-    public void switchRequestLocationUpdates(View view) {
-        Switch isGeofencingSwitch = (Switch) view;
-        saveIsTrackingPreference(isGeofencingSwitch.isChecked());
+    public void switchIsTracking(View view) {
+        Switch geofencingSwitch = (Switch) view;
+        boolean isTracking = geofencingSwitch.isChecked();
+        saveIsTrackingPreference(isTracking);
         Intent trackerServiceIntent = new Intent(this, TrackerService.class);
 
-        if (isGeofencingSwitch.isChecked()) {
+        if (isTracking) {
             startService(trackerServiceIntent);
         } else {
             stopService(trackerServiceIntent);
         }
+
+        Log.d(TAG, String.format("Tracking active: %s", isTracking));
     }
 
     // private methods **************************************************************************************************
@@ -178,6 +196,8 @@ public class MainActivity extends AppCompatActivity
         mLocationSettingsSuccessListener = new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                Log.d(TAG, "Location service settings sufficient, getting last known location...");
+                mTrackingSwitch.setChecked(getIsTrackingPreference());
                 //noinspection MissingPermission
                 mFusedLocationProviderClient.getLastLocation()
                         .addOnSuccessListener(MainActivity.this, mLocationSuccessListener);
@@ -195,17 +215,22 @@ public class MainActivity extends AppCompatActivity
                         // by showing the user a dialog.
                         try {
                             // Show the dialog by calling startResolutionForResult(),
-                            // and checkLocationSettingsSufficient the result in onActivityResult().
+                            // and requestLocationSettings the result in onActivityResult().
+                            Log.i(TAG, "Location service settings insufficient, invoke resolution...");
                             ResolvableApiException resolvable = (ResolvableApiException) e;
                             resolvable.startResolutionForResult(MainActivity.this,
-                                    REQUEST_CODE_CHECK_SETTINGS);
+                                    REQUEST_CODE_CHECK_LOCATION_SETTINGS);
                         } catch (IntentSender.SendIntentException sendEx) {
                             // Ignore the error.
+                            Log.e(TAG, "Location service settings resolution FAILED!", sendEx);
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                         // Location settings are not satisfied. However, we have no way
                         // to fix the settings so we won't show the dialog.
+                        //TODO: disable everything because permissions/settings are not satisfied!
+                        Toaster.showLong(MainActivity.this, R.string.toast_location_services_settings_change_unavailable);
+                        Log.w(TAG, "Location service settings change not possible!");
                         break;
                 }
             }
@@ -215,12 +240,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
-                    Log.d(TAG, String.format("Last location triggered, lat: %f, lon: %f",
+                    Log.d(TAG, String.format("Last known location received, lat: %f, lon: %f",
                             location.getLatitude(), location.getLongitude()));
-                    updateCurrentLocation(location);
+                    updateUICurrentLocation(location);
                 } else {
                     Toaster.showShort(MainActivity.this, R.string.toast_location_stale);
-                    Log.d(TAG, "Last location triggered but received location is null!");
+                    Log.d(TAG, "Last known location received but location is stale (null)!");
                 }
             }
         };
@@ -230,34 +255,49 @@ public class MainActivity extends AppCompatActivity
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                Log.d(TAG, "Update location callback triggered.");
+                Log.d(TAG, "Current location callback triggered.");
 
                 for (Location location : locationResult.getLocations()) {
-                    updateCurrentLocation(location);
+                    updateUICurrentLocation(location);
                 }
             }
         };
     }
 
-    private void setupLocationProviderClient() {
-        int permissionAccessFineLocation = ActivityCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
+    private boolean checkPermissions() {
+        Log.d(TAG, "Checking permissions...");
+        return checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
 
-        if (permissionAccessFineLocation != PackageManager.PERMISSION_GRANTED) {
+    private boolean checkPermission(String permission) {
+        int permitted = PermissionChecker.checkSelfPermission(MainActivity.this, permission);
+        Log.v(TAG, String.format("Checking permission '%s': %d",
+                permission, permitted));
+
+        return permitted == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void setupLocationProviderClient() {
+        Log.d(TAG, "Setting up FusedLocationProviderClient...");
+
+        if (!checkPermissions()) {
+            String permission = Manifest.permission.ACCESS_FINE_LOCATION;
             ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{permission},
                     REQUEST_CODE_PERMISSION_FINE_LOCATION);
+            Log.i(TAG, String.format("%s denied, requesting...",
+                    permission));
 
             return;
         }
 
-        checkLocationSettingsSufficient();
+        requestLocationSettings();
     }
 
-    private void checkLocationSettingsSufficient() {
+    private void requestLocationSettings() {
+        Log.d(TAG, "Checking Location service settings...");
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(getLocationRequest());
-
         SettingsClient settingsClient = LocationServices.getSettingsClient(MainActivity.this);
         settingsClient.checkLocationSettings(builder.build())
                 .addOnSuccessListener(MainActivity.this, mLocationSettingsSuccessListener)
@@ -272,10 +312,14 @@ public class MainActivity extends AppCompatActivity
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
 
+        Log.v(TAG, String.format("Location request: \ninterval: %d\nfastestInterval: %d\npriority: %d",
+                mLocationRequest.getInterval(), mLocationRequest.getFastestInterval(), mLocationRequest.getPriority()));
+
         return mLocationRequest;
     }
 
     private void startLocationUpdates() {
+        Log.d(TAG, "Start location updates.");
         //noinspection MissingPermission
         mFusedLocationProviderClient.requestLocationUpdates(getLocationRequest(),
                 mLocationCallback,
@@ -283,17 +327,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void stopLocationUpdates() {
+        Log.d(TAG, "Stop location updates.");
         mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
     }
 
-    private void updateCurrentLocation(Location location) {
+    private void updateUICurrentLocation(Location location) {
         defineSpeedAndBearing(location);
         mLastKnownLocation = location;
 
+        String bearingText = getBearingDisplayText(location.getBearing(), location.getSpeed());
         mLatitudeView.setText(String.format(Locale.getDefault(), "%.5f", location.getLatitude()));
         mLongitudeView.setText(String.format(Locale.getDefault(), "%.5f", location.getLongitude()));
         mSpeedView.setText(String.valueOf(location.getSpeed()));
-        mBearingView.setText(getBearingDisplayText(location.getBearing(), location.getSpeed()));
+        mBearingView.setText(bearingText);
+
+        Log.v(TAG, String.format("Update UI current location:\nlat: %.5f\nlon: %.5f\nspeed: %.2f\nbearing: %s",
+                location.getLatitude(), location.getLongitude(), location.getSpeed(), bearingText));
     }
 
     private void defineSpeedAndBearing(Location location) {
@@ -323,7 +372,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @NonNull
-    private String getBearingDisplayText(float bearing, double distance) {
+    private String getBearingDisplayText(float bearing,
+                                         double distance) {
         if (distance == 0) {
             return getString(R.string.not_applicable);
         }
@@ -362,13 +412,17 @@ public class MainActivity extends AppCompatActivity
 
     private boolean getIsTrackingPreference() {
         SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        return preferences.getBoolean(Constants.PREFERENCE_KEY_TRACKING, false);
+        boolean trackingPreference = preferences.getBoolean(Constants.PREFERENCE_KEY_TRACKING, false);
+        Log.v(TAG, String.format("Retrieved tracking preference: %s", trackingPreference));
+
+        return trackingPreference;
     }
 
-    private void saveIsTrackingPreference(boolean isGeofencing) {
+    private void saveIsTrackingPreference(boolean isTracking) {
         SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(Constants.PREFERENCE_KEY_TRACKING, isGeofencing);
+        editor.putBoolean(Constants.PREFERENCE_KEY_TRACKING, isTracking);
         editor.apply();
+        Log.v(TAG, String.format("Saved tracking preference: %s", isTracking));
     }
 }
