@@ -25,8 +25,6 @@ import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 
-//import static com.udragan.android.marathontracker.MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION;
-
 /**
  * A background service for managing the geofencing client.
  */
@@ -42,7 +40,8 @@ public class TrackerService extends Service
     private GeofencingClient mGeofencingClient;
     private PendingIntent mGeofenceIntentServicePendingIntent;
 
-    private OnCompleteListener<Void> mAddRemoveGeofencesListener;
+    private OnCompleteListener<Void> mAddGeofencesListener;
+    private OnCompleteListener<Void> mRemoveGeofencesListner;
 
     // constructors *****************************************************************************************************
 
@@ -70,7 +69,7 @@ public class TrackerService extends Service
 
         if (permission == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
-                    .addOnCompleteListener(mAddRemoveGeofencesListener);
+                    .addOnCompleteListener(mAddGeofencesListener);
             sendStickyNotification();
         }
 
@@ -82,7 +81,7 @@ public class TrackerService extends Service
         super.onDestroy();
 
         mGeofencingClient.removeGeofences(getGeofencingPendingIntent())
-                .addOnCompleteListener(mAddRemoveGeofencesListener);
+                .addOnCompleteListener(mRemoveGeofencesListner);
         mGeofencingClient = null;
         //TODO: cancel only if it is started
         cancelStickyNotification();
@@ -97,14 +96,28 @@ public class TrackerService extends Service
     // private methods **************************************************************************************************
 
     private void defineListeners() {
-        mAddRemoveGeofencesListener = new OnCompleteListener<Void>() {
+        mAddGeofencesListener = new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     Toaster.showShort(TrackerService.this, R.string.toast_add_geofence_successful);
-                    Log.d(TAG, "Add geofence successful.");
+                    Log.d(TAG, "Add geofences successful.");
                 } else {
                     Toaster.showLong(TrackerService.this, R.string.toast_add_geofence_failed);
+                    String errorMessage = GeofenceErrorHelper.getErrorString(TrackerService.this, task.getException());
+                    Log.w(TAG, errorMessage);
+                }
+            }
+        };
+
+        mRemoveGeofencesListner = new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Toaster.showShort(TrackerService.this, R.string.toast_remove_geofence_successful);
+                    Log.d(TAG, "Remove geofences successful.");
+                } else {
+                    Toaster.showLong(TrackerService.this, R.string.toast_remove_geofence_failed);
                     String errorMessage = GeofenceErrorHelper.getErrorString(TrackerService.this, task.getException());
                     Log.w(TAG, errorMessage);
                 }
