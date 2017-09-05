@@ -7,7 +7,7 @@ public class Constants {
 
     // members **********************************************************************************************************
 
-    private static final String PACKAGE_NAME = "com.udragan.android.marathontracker";
+    public static final String PACKAGE_NAME = "com.udragan.android.marathontracker";
 
     // constructors *****************************************************************************************************
 

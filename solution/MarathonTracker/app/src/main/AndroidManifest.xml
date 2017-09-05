@@ -25,5 +25,9 @@
         <service
             android:name=".services.TrackerService" />
 
+        <provider
+            android:name=".providers.MarathonContentProvider"
+            android:authorities="com.udragan.android.marathontracker" />
+
     </application>
 </manifest>
