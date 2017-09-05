@@ -9,7 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
@@ -39,9 +39,10 @@ public class TrackerService extends Service
     private NotificationManager mNotificationManager;
     private GeofencingClient mGeofencingClient;
     private PendingIntent mGeofenceIntentServicePendingIntent;
+    private PendingIntent mMainActivityPendingIntent;
 
     private OnCompleteListener<Void> mAddGeofencesListener;
-    private OnCompleteListener<Void> mRemoveGeofencesListner;
+    private OnCompleteListener<Void> mRemoveGeofencesListener;
 
     // constructors *****************************************************************************************************
 
@@ -56,18 +57,22 @@ public class TrackerService extends Service
     // overrides ********************************************************************************************************
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         Log.d(TAG, "onStartCommand.");
 
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
-
         // TODO: implement consistent permission checks!
-        int permission = ActivityCompat.checkSelfPermission(TrackerService.this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
-
-        if (permission == PackageManager.PERMISSION_GRANTED) {
+        if (checkPermissions()) {
+            Log.d(TAG, "Adding geofences...");
+            //noinspection MissingPermission
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
                     .addOnCompleteListener(mAddGeofencesListener);
             sendStickyNotification();
@@ -81,7 +86,7 @@ public class TrackerService extends Service
         super.onDestroy();
 
         mGeofencingClient.removeGeofences(getGeofencingPendingIntent())
-                .addOnCompleteListener(mRemoveGeofencesListner);
+                .addOnCompleteListener(mRemoveGeofencesListener);
         mGeofencingClient = null;
         //TODO: cancel only if it is started
         cancelStickyNotification();
@@ -110,7 +115,7 @@ public class TrackerService extends Service
             }
         };
 
-        mRemoveGeofencesListner = new OnCompleteListener<Void>() {
+        mRemoveGeofencesListener = new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -123,6 +128,19 @@ public class TrackerService extends Service
                 }
             }
         };
+    }
+
+    private boolean checkPermissions() {
+        Log.d(TAG, "Checking permissions...");
+        return checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    private boolean checkPermission(String permission) {
+        int permitted = PermissionChecker.checkSelfPermission(TrackerService.this, permission);
+        Log.v(TAG, String.format("Checking permission '%s': %d",
+                permission, permitted));
+
+        return permitted == PackageManager.PERMISSION_GRANTED;
     }
 
     @NonNull
@@ -160,25 +178,30 @@ public class TrackerService extends Service
     }
 
     private void sendStickyNotification() {
-        Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
-        PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
-                MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
-                mainActivityIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        if (mMainActivityPendingIntent == null) {
+            Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
+            mMainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
+                    MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
+                    mainActivityIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+        }
 
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(TrackerService.this)
                 .setContentTitle("Marathon Tracker")
                 .setContentText("service running")
-                .setContentIntent(mainActivityPendingIntent)
+                .setContentIntent(mMainActivityPendingIntent)
                 .setSmallIcon(R.drawable.ic_notification_small)
                 .setOngoing(true)
                 .setAutoCancel(false);
 
         mNotificationManager.notify(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
                 notificationBuilder.build());
+
+        Log.d(TAG, "Sent sticky notification.");
     }
 
     private void cancelStickyNotification() {
         mNotificationManager.cancel(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION);
+        Log.d(TAG, "Canceled sticky notification.");
     }
 }
