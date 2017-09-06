@@ -2,6 +2,7 @@ package com.udragan.android.marathontracker.providers;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -12,11 +13,17 @@ import android.support.annotation.Nullable;
  */
 public class MarathonContentProvider extends ContentProvider {
 
+    // members **********************************************************************************************************
+
+    private MarathonDbHelper mMarathonDbHelper;
+
     // overrides ********************************************************************************************************
 
     @Override
     public boolean onCreate() {
-        return false;
+        Context context = getContext();
+        mMarathonDbHelper = new MarathonDbHelper(context);
+        return true;
     }
 
     @Nullable
