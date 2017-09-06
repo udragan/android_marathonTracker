@@ -3,6 +3,7 @@ package com.udragan.android.marathontracker.providers;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -14,6 +15,16 @@ import android.support.annotation.Nullable;
 public class MarathonContentProvider extends ContentProvider {
 
     // members **********************************************************************************************************
+
+    private static final int TRACKS = 100;
+    private static final int TRACKS_BY_ID = 101;
+
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+    static {
+        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS, TRACKS);
+        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS + "/#", TRACKS_BY_ID);
+    }
 
     private MarathonDbHelper mMarathonDbHelper;
 

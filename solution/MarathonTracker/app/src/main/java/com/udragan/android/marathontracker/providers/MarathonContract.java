@@ -12,7 +12,7 @@ public class MarathonContract {
 
     // members **********************************************************************************************************
 
-    public static final String AUTHORITY = Constants.PACKAGE_NAME;
+    public static final String AUTHORITY = Constants.PACKAGE_NAME + ".provider";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final String PATH_TRACKS = "tracks";
 
@@ -28,7 +28,7 @@ public class MarathonContract {
                 .appendPath(PATH_TRACKS)
                 .build();
 
-        public static final String TABLE_NAME = "Track";
+        public static final String TABLE_NAME = "Tracks";
 
         public static final String COLUMN_NAME = "_name";
         public static final String COLUMN_IS_COMPLETE = "_isComplete";
