@@ -1,10 +1,13 @@
 package com.udragan.android.marathontracker.providers;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -39,18 +42,41 @@ public class MarathonContentProvider extends ContentProvider {
 
     @Nullable
     @Override
+    public Uri insert(@NonNull Uri uri,
+                      @Nullable ContentValues contentValues) {
+        final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+        Uri returnUri;
+
+        switch (match) {
+            case TRACKS:
+                long id = db.insert(MarathonContract.TrackEntry.TABLE_NAME, null, contentValues);
+
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(MarathonContract.TrackEntry.CONTENT_URI, id);
+                } else {
+                    throw new SQLException("Failed to insert row into " + uri);
+                }
+
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        //noinspection ConstantConditions
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return returnUri;
+    }
+
+    @Nullable
+    @Override
     public Cursor query(@NonNull Uri uri,
                         @Nullable String[] strings,
                         @Nullable String s,
                         @Nullable String[] strings1,
                         @Nullable String s1) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Uri insert(@NonNull Uri uri,
-                      @Nullable ContentValues contentValues) {
         return null;
     }
 
