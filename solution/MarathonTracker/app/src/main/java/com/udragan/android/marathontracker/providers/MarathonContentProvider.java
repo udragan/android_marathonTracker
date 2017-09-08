@@ -117,9 +117,36 @@ public class MarathonContentProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri,
-                      @Nullable String s,
-                      @Nullable String[] strings) {
-        return 0;
+                      @Nullable String selection,
+                      @Nullable String[] selectionArgs) {
+        final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+        int noOfDeleted;
+        
+        switch (match) {
+            case TRACKS:
+                noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
+                        "",
+                        null);
+                break;
+
+            case TRACKS_BY_ID:
+                String id = uri.getPathSegments().get(1);
+                noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
+                        "_id=?",
+                        new String[]{id});
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown uri: " + uri);
+        }
+
+        if (noOfDeleted != 0) {
+            //noinspection ConstantConditions
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return noOfDeleted;
     }
 
     @Override
