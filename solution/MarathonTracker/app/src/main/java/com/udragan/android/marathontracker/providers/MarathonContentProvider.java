@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.udragan.android.marathontracker.providers.MarathonContract.TrackEntry;
+
 /**
  * Extension of {@link android.content.ContentProvider} for Marathon provider.
  */
@@ -50,10 +52,10 @@ public class MarathonContentProvider extends ContentProvider {
 
         switch (match) {
             case TRACKS:
-                long id = db.insert(MarathonContract.TrackEntry.TABLE_NAME, null, contentValues);
+                long id = db.insert(TrackEntry.TABLE_NAME, null, contentValues);
 
                 if (id > 0) {
-                    returnUri = ContentUris.withAppendedId(MarathonContract.TrackEntry.CONTENT_URI, id);
+                    returnUri = ContentUris.withAppendedId(TrackEntry.CONTENT_URI, id);
                 } else {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
@@ -61,7 +63,7 @@ public class MarathonContentProvider extends ContentProvider {
                 break;
 
             default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
+                throw new IllegalArgumentException("Unknown uri: " + uri);
         }
 
         //noinspection ConstantConditions
@@ -73,11 +75,44 @@ public class MarathonContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri,
-                        @Nullable String[] strings,
-                        @Nullable String s,
-                        @Nullable String[] strings1,
-                        @Nullable String s1) {
-        return null;
+                        @Nullable String[] projection,
+                        @Nullable String selection,
+                        @Nullable String[] selectionArgs,
+                        @Nullable String sortOrder) {
+        final SQLiteDatabase db = mMarathonDbHelper.getReadableDatabase();
+        int match = sUriMatcher.match(uri);
+        Cursor cursor;
+
+        switch (match) {
+            case TRACKS:
+                cursor = db.query(TrackEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case TRACKS_BY_ID:
+                String id = uri.getPathSegments().get(1);
+                cursor = db.query(TrackEntry.TABLE_NAME,
+                        projection,
+                        "_id=?",
+                        new String[]{id},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown uri: " + uri);
+        }
+
+        //noinspection ConstantConditions
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return cursor;
     }
 
     @Override
