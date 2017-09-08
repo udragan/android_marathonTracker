@@ -42,7 +42,7 @@ public class MarathonContentProvider extends ContentProvider {
     public boolean onCreate() {
         Context context = getContext();
         mMarathonDbHelper = new MarathonDbHelper(context);
-        
+
         return true;
     }
 
@@ -209,6 +209,6 @@ public class MarathonContentProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        return null;
+        throw new UnsupportedOperationException("Not supported!");
     }
 }
