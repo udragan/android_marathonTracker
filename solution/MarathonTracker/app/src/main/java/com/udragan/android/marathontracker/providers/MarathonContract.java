@@ -28,7 +28,7 @@ public class MarathonContract {
                 .appendPath(PATH_TRACKS)
                 .build();
 
-        public static final String TABLE_NAME = "Tracks";
+        public static final String TABLE_NAME = "tracks";
 
         public static final String COLUMN_NAME = "_name";
         public static final String COLUMN_IS_COMPLETE = "_isComplete";

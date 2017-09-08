@@ -14,6 +14,9 @@ import android.support.annotation.Nullable;
 
 import com.udragan.android.marathontracker.providers.MarathonContract.TrackEntry;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * Extension of {@link android.content.ContentProvider} for Marathon provider.
  */
@@ -22,13 +25,13 @@ public class MarathonContentProvider extends ContentProvider {
     // members **********************************************************************************************************
 
     private static final int TRACKS = 100;
-    private static final int TRACKS_BY_ID = 101;
+    private static final int TRACK_BY_ID = 101;
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
         sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS, TRACKS);
-        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS + "/#", TRACKS_BY_ID);
+        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS + "/#", TRACK_BY_ID);
     }
 
     private MarathonDbHelper mMarathonDbHelper;
@@ -39,6 +42,7 @@ public class MarathonContentProvider extends ContentProvider {
     public boolean onCreate() {
         Context context = getContext();
         mMarathonDbHelper = new MarathonDbHelper(context);
+        
         return true;
     }
 
@@ -94,7 +98,7 @@ public class MarathonContentProvider extends ContentProvider {
                         sortOrder);
                 break;
 
-            case TRACKS_BY_ID:
+            case TRACK_BY_ID:
                 String id = uri.getPathSegments().get(1);
                 cursor = db.query(TrackEntry.TABLE_NAME,
                         projection,
@@ -122,7 +126,7 @@ public class MarathonContentProvider extends ContentProvider {
         final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
         int noOfDeleted;
-        
+
         switch (match) {
             case TRACKS:
                 noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
@@ -130,7 +134,7 @@ public class MarathonContentProvider extends ContentProvider {
                         null);
                 break;
 
-            case TRACKS_BY_ID:
+            case TRACK_BY_ID:
                 String id = uri.getPathSegments().get(1);
                 noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
                         "_id=?",
@@ -151,10 +155,55 @@ public class MarathonContentProvider extends ContentProvider {
 
     @Override
     public int update(@NonNull Uri uri,
-                      @Nullable ContentValues contentValues,
-                      @Nullable String s,
-                      @Nullable String[] strings) {
-        return 0;
+                      @Nullable ContentValues values,
+                      @Nullable String selection,
+                      @Nullable String[] selectionArgs) {
+        final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+        int noOfUpdated;
+
+        switch (match) {
+            case TRACKS:
+                noOfUpdated = db.update(TrackEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+
+            case TRACK_BY_ID:
+                if (selection == null) {
+                    selection = TrackEntry._ID + "=?";
+                } else {
+                    selection += " AND " + TrackEntry._ID + "=?";
+                }
+
+                String id = uri.getPathSegments().get(1);
+
+                if (selectionArgs == null) {
+                    selectionArgs = new String[]{id};
+                } else {
+                    ArrayList<String> selectionArgsList = new ArrayList<String>();
+                    selectionArgsList.addAll(Arrays.asList(selectionArgs));
+                    selectionArgsList.add(id);
+                    selectionArgs = selectionArgsList.toArray(new String[selectionArgsList.size()]);
+                }
+
+                noOfUpdated = db.update(TrackEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown uri: " + uri);
+        }
+
+        if (noOfUpdated != 0) {
+            //noinspection ConstantConditions
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return noOfUpdated;
     }
 
     @Nullable
