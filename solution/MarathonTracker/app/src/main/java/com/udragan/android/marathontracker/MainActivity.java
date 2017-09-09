@@ -1,14 +1,20 @@
 package com.udragan.android.marathontracker;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -38,7 +44,9 @@ import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
 import com.udragan.android.marathontracker.models.CheckpointModel;
+import com.udragan.android.marathontracker.providers.MarathonContract;
 import com.udragan.android.marathontracker.services.TrackerService;
+import com.udragan.android.marathontracker.testing.TestTrackAdapter;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -71,12 +79,22 @@ public class MainActivity extends AppCompatActivity
     private OnSuccessListener<Location> mLocationSuccessListener;
     private LocationCallback mLocationCallback;
 
+    // testing //////////////////////////////////
+
+    private LoaderManager.LoaderCallbacks<Cursor> mTestLoaderCallback;
+    private TestTrackAdapter mTestTrackAdapter;
+
+    ///end testing //////////////////////////////
+
     // overrides ********************************************************************************************************
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        defineListeners();
+        defineCallbacks();
 
         mTrackingSwitch = (Switch) findViewById(R.id.is_tracking_switch);
         mLatitudeView = (TextView) findViewById(R.id.latitude_value_text_main_activity);
@@ -86,13 +104,22 @@ public class MainActivity extends AppCompatActivity
         Toolbar appBar = (Toolbar) findViewById(R.id.toolbar_main_activity);
         setSupportActionBar(appBar);
 
-        // test data //
+        // testing //////////////////////////////
+
         ArrayList<CheckpointModel> testDataCheckpoints = new ArrayList<>(4);
         testDataCheckpoints.add(new CheckpointModel(16, 45));
         testDataCheckpoints.add(new CheckpointModel(19, 45));
         testDataCheckpoints.add(new CheckpointModel(16, 45));
         testDataCheckpoints.add(new CheckpointModel(19, 45));
-        ///////////////
+
+        mTestTrackAdapter = new TestTrackAdapter(MainActivity.this, null);
+        RecyclerView testRecyclerView = (RecyclerView) findViewById(R.id.test_recycler_view_tracks);
+        testRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        testRecyclerView.setAdapter(mTestTrackAdapter);
+
+        getSupportLoaderManager().initLoader(1, null, mTestLoaderCallback);
+
+        // end testing //////////////////////////
 
         mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, testDataCheckpoints);
         mCheckpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
@@ -100,9 +127,6 @@ public class MainActivity extends AppCompatActivity
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
-
-        defineListeners();
-        defineCallbacks();
     }
 
     @Override
@@ -262,6 +286,36 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
+
+        // testing //////////////////////////////
+
+        mTestLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                Uri TRACKS_URI = MarathonContract.BASE_CONTENT_URI
+                        .buildUpon()
+                        .appendPath(MarathonContract.PATH_TRACKS)
+                        .build();
+                return new CursorLoader(MainActivity.this,
+                        TRACKS_URI,
+                        null,
+                        null,
+                        null,
+                        MarathonContract.TrackEntry._ID);
+            }
+
+            @Override
+            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                data.moveToFirst();
+                mTestTrackAdapter.swapCursor(data);
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> loader) {
+            }
+        };
+
+        ///end testing //////////////////////////
     }
 
     private boolean checkPermissions() {
@@ -425,4 +479,22 @@ public class MainActivity extends AppCompatActivity
         editor.apply();
         Log.v(TAG, String.format("Saved tracking preference: %s", isTracking));
     }
+
+
+    // testing //////////////////////////////////
+
+    public void testAddTrack(View view) {
+        ContentValues cv = new ContentValues(1);
+        cv.put(MarathonContract.TrackEntry.COLUMN_NAME, "Test track");
+        cv.put(MarathonContract.TrackEntry.COLUMN_IS_COMPLETE, false);
+        cv.put(MarathonContract.TrackEntry.COLUMN_DURATION, 0);
+
+        getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, cv);
+    }
+
+    public void testLoadTracks(View view) {
+
+    }
+
+    // end testing //////////////////////////////
 }

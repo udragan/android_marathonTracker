@@ -29,7 +29,7 @@
 
         <provider
             android:name=".providers.MarathonContentProvider"
-            android:authorities="com.udragan.android.marathontracker"
+            android:authorities="com.udragan.android.marathontracker.provider"
             android:exported="false" />
 
     </application>

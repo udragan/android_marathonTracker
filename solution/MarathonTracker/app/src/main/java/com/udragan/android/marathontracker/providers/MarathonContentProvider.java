@@ -182,7 +182,7 @@ public class MarathonContentProvider extends ContentProvider {
                 if (selectionArgs == null) {
                     selectionArgs = new String[]{id};
                 } else {
-                    ArrayList<String> selectionArgsList = new ArrayList<String>();
+                    ArrayList<String> selectionArgsList = new ArrayList<>();
                     selectionArgsList.addAll(Arrays.asList(selectionArgs));
                     selectionArgsList.add(id);
                     selectionArgs = selectionArgsList.toArray(new String[selectionArgsList.size()]);
