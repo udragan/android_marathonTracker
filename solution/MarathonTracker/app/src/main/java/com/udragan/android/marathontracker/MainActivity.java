@@ -480,7 +480,6 @@ public class MainActivity extends AppCompatActivity
         Log.v(TAG, String.format("Saved tracking preference: %s", isTracking));
     }
 
-
     // testing //////////////////////////////////
 
     public void testAddTrack(View view) {
@@ -489,11 +488,19 @@ public class MainActivity extends AppCompatActivity
         cv.put(MarathonContract.TrackEntry.COLUMN_IS_COMPLETE, false);
         cv.put(MarathonContract.TrackEntry.COLUMN_DURATION, 0);
 
-        getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, cv);
+        Uri insertUri = getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, cv);
+
+        Toaster.showShort(MainActivity.this, String.valueOf(insertUri));
     }
 
     public void testLoadTracks(View view) {
 
+    }
+
+    public void testClearDb(View view) {
+        int noOfDeleted = getContentResolver().delete(MarathonContract.TrackEntry.CONTENT_URI, null, null);
+
+        Toaster.showShort(MainActivity.this, String.format(Locale.getDefault(), "Deleted: %d", noOfDeleted));
     }
 
     // end testing //////////////////////////////
