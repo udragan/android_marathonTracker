@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpsies="http://www.gpsies.com/GPX/1/0" creator="GPSies http://www.gpsies.com - GPSies Track" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.gpsies.com/GPX/1/0 http://www.gpsies.com/gpsies.xsd">
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
-    <name>GPSies Track</name>
-    <link href="http://www.gpsies.com/">
-      <text>GPSies Track on GPSies.com</text>
-    </link>
-    <time>2017-09-11T20:32:25Z</time>
+    <name>Test Track</name>
   </metadata>
   <trk>
-    <name>GPSies Track on GPSies.com</name>
+    <name>Track</name>
     <trkseg>
       <trkpt lat="46.35607474" lon="-72.5397462">
         <ele>18.000000</ele>
