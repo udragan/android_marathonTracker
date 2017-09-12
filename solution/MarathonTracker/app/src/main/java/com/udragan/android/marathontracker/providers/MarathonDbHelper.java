@@ -28,6 +28,15 @@ public class MarathonDbHelper extends SQLiteOpenHelper {
     // overrides ********************************************************************************************************
 
     @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+
+        if (!db.isReadOnly()) {
+            db.setForeignKeyConstraintsEnabled(true);
+        }
+    }
+
+    @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String SQL_CREATE_TRACKS_TABLE = "CREATE TABLE " + MarathonContract.TrackEntry.TABLE_NAME + " (" +
                 MarathonContract.TrackEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -44,7 +53,8 @@ public class MarathonDbHelper extends SQLiteOpenHelper {
                 MarathonContract.CheckpointEntry.COLUMN_TIME + " TIMESTAMP, " +
                 MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID + " INTEGER," +
                 "FOREIGN KEY(" + MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID +
-                ") REFERENCES " + MarathonContract.TrackEntry.TABLE_NAME + "(" + MarathonContract.TrackEntry._ID + "))";
+                ") REFERENCES " + MarathonContract.TrackEntry.TABLE_NAME + "(" + MarathonContract.TrackEntry._ID + ")" +
+                " ON DELETE CASCADE)";
 
         sqLiteDatabase.execSQL(SQL_CREATE_TRACKS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_CHECKPOINTS_TABLE);
