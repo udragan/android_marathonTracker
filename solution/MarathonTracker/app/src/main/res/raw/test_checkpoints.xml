@@ -1,41 +1,49 @@
 <checkpoints>
     <checkpoint>
         <name>start</name>
+        <index>0</index>
         <lat>46.3561</lat>
         <lon>-72.5397</lon>
     </checkpoint>
     <checkpoint>
         <name>c1</name>
+        <index>1</index>
         <lat>46.3507</lat>
         <lon>-72.5481</lon>
     </checkpoint>
     <checkpoint>
         <name>c2</name>
+        <index>2</index>
         <lat>46.3424</lat>
         <lon>-72.5445</lon>
     </checkpoint>
     <checkpoint>
         <name>c3</name>
+        <index>3</index>
         <lat>46.3516</lat>
         <lon>-72.5792</lon>
     </checkpoint>
     <checkpoint>
         <name>c4</name>
+        <index>4</index>
         <lat>46.36</lat>
         <lon>-72.5695</lon>
     </checkpoint>
     <checkpoint>
         <name>c5</name>
+        <index>5</index>
         <lat>46.3644</lat>
         <lon>-72.5623</lon>
     </checkpoint>
     <checkpoint>
         <name>c6</name>
+        <index>6</index>
         <lat>46.3621</lat>
         <lon>-72.5509</lon>
     </checkpoint>
     <checkpoint>
         <name>finish</name>
+        <index>7</index>
         <lat>46.3563</lat>
         <lon>-72.5399</lon>
     </checkpoint>

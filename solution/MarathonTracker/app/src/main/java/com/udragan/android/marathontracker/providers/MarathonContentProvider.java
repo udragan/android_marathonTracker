@@ -12,8 +12,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.udragan.android.marathontracker.providers.MarathonContract.TrackEntry;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -26,12 +24,16 @@ public class MarathonContentProvider extends ContentProvider {
 
     private static final int TRACKS = 100;
     private static final int TRACK_BY_ID = 101;
+    private static final int CHECKPOINTS = 200;
+    private static final int CHECKPOINT_BY_ID = 201;
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
         sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS, TRACKS);
         sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_TRACKS + "/#", TRACK_BY_ID);
+        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_CHECKPOINTS, CHECKPOINTS);
+        sUriMatcher.addURI(MarathonContract.AUTHORITY, MarathonContract.PATH_CHECKPOINTS + "/#", CHECKPOINT_BY_ID);
     }
 
     private MarathonDbHelper mMarathonDbHelper;
@@ -53,13 +55,25 @@ public class MarathonContentProvider extends ContentProvider {
         final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
         Uri returnUri;
+        long id;
 
         switch (match) {
             case TRACKS:
-                long id = db.insert(TrackEntry.TABLE_NAME, null, contentValues);
+                id = db.insert(MarathonContract.TrackEntry.TABLE_NAME, null, contentValues);
 
                 if (id > 0) {
-                    returnUri = ContentUris.withAppendedId(TrackEntry.CONTENT_URI, id);
+                    returnUri = ContentUris.withAppendedId(MarathonContract.TrackEntry.CONTENT_URI, id);
+                } else {
+                    throw new SQLException("Failed to insert row into " + uri);
+                }
+
+                break;
+
+            case CHECKPOINTS:
+                id = db.insert(MarathonContract.CheckpointEntry.TABLE_NAME, null, contentValues);
+
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(MarathonContract.CheckpointEntry.CONTENT_URI, id);
                 } else {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
@@ -85,11 +99,12 @@ public class MarathonContentProvider extends ContentProvider {
                         @Nullable String sortOrder) {
         final SQLiteDatabase db = mMarathonDbHelper.getReadableDatabase();
         int match = sUriMatcher.match(uri);
+        String id;
         Cursor cursor;
 
         switch (match) {
             case TRACKS:
-                cursor = db.query(TrackEntry.TABLE_NAME,
+                cursor = db.query(MarathonContract.TrackEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -99,8 +114,29 @@ public class MarathonContentProvider extends ContentProvider {
                 break;
 
             case TRACK_BY_ID:
-                String id = uri.getPathSegments().get(1);
-                cursor = db.query(TrackEntry.TABLE_NAME,
+                id = uri.getPathSegments().get(1);
+                cursor = db.query(MarathonContract.TrackEntry.TABLE_NAME,
+                        projection,
+                        "_id=?",
+                        new String[]{id},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case CHECKPOINTS:
+                cursor = db.query(MarathonContract.CheckpointEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case CHECKPOINT_BY_ID:
+                id = uri.getPathSegments().get(1);
+                cursor = db.query(MarathonContract.CheckpointEntry.TABLE_NAME,
                         projection,
                         "_id=?",
                         new String[]{id},
@@ -126,11 +162,12 @@ public class MarathonContentProvider extends ContentProvider {
                       @Nullable String[] selectionArgs) {
         final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
+        String id;
         int noOfUpdated;
 
         switch (match) {
             case TRACKS:
-                noOfUpdated = db.update(TrackEntry.TABLE_NAME,
+                noOfUpdated = db.update(MarathonContract.TrackEntry.TABLE_NAME,
                         values,
                         selection,
                         selectionArgs);
@@ -138,12 +175,12 @@ public class MarathonContentProvider extends ContentProvider {
 
             case TRACK_BY_ID:
                 if (selection == null) {
-                    selection = TrackEntry._ID + "=?";
+                    selection = MarathonContract.TrackEntry._ID + "=?";
                 } else {
-                    selection += " AND " + TrackEntry._ID + "=?";
+                    selection += " AND " + MarathonContract.TrackEntry._ID + "=?";
                 }
 
-                String id = uri.getPathSegments().get(1);
+                id = uri.getPathSegments().get(1);
 
                 if (selectionArgs == null) {
                     selectionArgs = new String[]{id};
@@ -154,7 +191,38 @@ public class MarathonContentProvider extends ContentProvider {
                     selectionArgs = selectionArgsList.toArray(new String[selectionArgsList.size()]);
                 }
 
-                noOfUpdated = db.update(TrackEntry.TABLE_NAME,
+                noOfUpdated = db.update(MarathonContract.TrackEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+
+            case CHECKPOINTS:
+                noOfUpdated = db.update(MarathonContract.CheckpointEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+
+            case CHECKPOINT_BY_ID:
+                if (selection == null) {
+                    selection = MarathonContract.CheckpointEntry._ID + "=?";
+                } else {
+                    selection += " AND " + MarathonContract.CheckpointEntry._ID + "=?";
+                }
+
+                id = uri.getPathSegments().get(1);
+
+                if (selectionArgs == null) {
+                    selectionArgs = new String[]{id};
+                } else {
+                    ArrayList<String> selectionArgsList = new ArrayList<>();
+                    selectionArgsList.addAll(Arrays.asList(selectionArgs));
+                    selectionArgsList.add(id);
+                    selectionArgs = selectionArgsList.toArray(new String[selectionArgsList.size()]);
+                }
+
+                noOfUpdated = db.update(MarathonContract.CheckpointEntry.TABLE_NAME,
                         values,
                         selection,
                         selectionArgs);
@@ -178,18 +246,32 @@ public class MarathonContentProvider extends ContentProvider {
                       @Nullable String[] selectionArgs) {
         final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
+        String id;
         int noOfDeleted;
 
         switch (match) {
             case TRACKS:
-                noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
+                noOfDeleted = db.delete(MarathonContract.TrackEntry.TABLE_NAME,
                         null,
                         null);
                 break;
 
             case TRACK_BY_ID:
-                String id = uri.getPathSegments().get(1);
-                noOfDeleted = db.delete(TrackEntry.TABLE_NAME,
+                id = uri.getPathSegments().get(1);
+                noOfDeleted = db.delete(MarathonContract.TrackEntry.TABLE_NAME,
+                        "_id=?",
+                        new String[]{id});
+                break;
+
+            case CHECKPOINTS:
+                noOfDeleted = db.delete(MarathonContract.CheckpointEntry.TABLE_NAME,
+                        null,
+                        null);
+                break;
+
+            case CHECKPOINT_BY_ID:
+                id = uri.getPathSegments().get(1);
+                noOfDeleted = db.delete(MarathonContract.CheckpointEntry.TABLE_NAME,
                         "_id=?",
                         new String[]{id});
                 break;
