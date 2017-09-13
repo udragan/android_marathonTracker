@@ -12,6 +12,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.udragan.android.marathontracker.R;
+import com.udragan.android.marathontracker.infrastructure.interfaces.ICursorLoaderCallback;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 
 /**
@@ -35,6 +36,11 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
      */
     public TestTrackAdapter(Context context,
                             Cursor cursor) {
+        if (!(context instanceof ICursorLoaderCallback)) {
+            throw new ClassCastException(String.format("Provided context does not implement '%s'",
+                    ICursorLoaderCallback.class.getSimpleName()));
+        }
+
         mContext = context;
         mCursor = cursor;
         mSelectedIndex = RecyclerView.NO_POSITION;
@@ -108,14 +114,19 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
     }
 
     // ViewHolder class *************************************************************************************************
+    // ******************************************************************************************************************
 
     class TrackViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener {
+
+        // members ******************************************************************************************************
 
         private TextView mIdView;
         private TextView mNameView;
         private CheckBox mIsComplete;
         private TextView mDuration;
+
+        // constructors *************************************************************************************************
 
         TrackViewHolder(View itemView) {
             super(itemView);
@@ -128,6 +139,8 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
             itemView.setOnClickListener(this);
         }
 
+        // overrides ****************************************************************************************************
+
         @Override
         public void onClick(View view) {
             if (getAdapterPosition() == RecyclerView.NO_POSITION) {
@@ -138,7 +151,9 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
             mSelectedIndex = getAdapterPosition();
             notifyItemChanged(mSelectedIndex);
 
-            // TODO: set checkpoints from selected track
+            TextView idView = view.findViewById(R.id.track_id_text);
+            int id = Integer.parseInt(idView.getText().toString());
+            ((ICursorLoaderCallback) mContext).LoadCursor(id);
         }
     }
 }

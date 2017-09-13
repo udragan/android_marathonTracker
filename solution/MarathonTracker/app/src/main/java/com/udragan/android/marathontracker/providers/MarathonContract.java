@@ -16,6 +16,7 @@ public class MarathonContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final String PATH_TRACKS = "tracks";
     public static final String PATH_CHECKPOINTS = "checkpoints";
+    public static final int INVALID_TRACK_ID = -1;
 
     /**
      * Track table declaration.

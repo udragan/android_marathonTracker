@@ -43,16 +43,15 @@ import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
-import com.udragan.android.marathontracker.models.CheckpointModel;
+import com.udragan.android.marathontracker.infrastructure.interfaces.ICursorLoaderCallback;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 import com.udragan.android.marathontracker.services.TrackerService;
 import com.udragan.android.marathontracker.testing.TestTrackAdapter;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements IActivity {
+        implements IActivity, ICursorLoaderCallback {
 
     // members **********************************************************************************************************
 
@@ -61,6 +60,9 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_PERMISSION_FINE_LOCATION = REQUEST_CODE_BASE + 10;
     private static final int REQUEST_CODE_CHECK_LOCATION_SETTINGS = REQUEST_CODE_BASE + 11;
+    private static final int LOADER_CALLBACK_ID_TRACKS = REQUEST_CODE_BASE + 20;
+    private static final int LOADER_CALLBACK_ID_CHECKPOINTS = REQUEST_CODE_BASE + 21;
+    private static final String EXTRA_TRACK_ID = Constants.PACKAGE_NAME + ".TRACK_ID";
 
     private Switch mTrackingSwitch;
     private TextView mLatitudeView;
@@ -78,6 +80,7 @@ public class MainActivity extends AppCompatActivity
     private OnFailureListener mLocationSettingsFailureListener;
     private OnSuccessListener<Location> mLocationSuccessListener;
     private LocationCallback mLocationCallback;
+    private LoaderManager.LoaderCallbacks<Cursor> mCheckpointLoaderCallback;
 
     // testing //////////////////////////////////
 
@@ -111,7 +114,8 @@ public class MainActivity extends AppCompatActivity
         testRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         testRecyclerView.setAdapter(mTestTrackAdapter);
 
-        getSupportLoaderManager().initLoader(1, null, mTestLoaderCallback);
+        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_TRACKS, null, mTestLoaderCallback);
+        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_CHECKPOINTS, null, mCheckpointLoaderCallback);
 
         // end testing //////////////////////////
 
@@ -189,6 +193,14 @@ public class MainActivity extends AppCompatActivity
                     Log.w(TAG, "Location services turned off.");
                 }
         }
+    }
+
+    // ICursorLoaderCallback ********************************************************************************************
+
+    public void LoadCursor(int id) {
+        Bundle bundle = new Bundle(1);
+        bundle.putInt(EXTRA_TRACK_ID, id);
+        getSupportLoaderManager().restartLoader(LOADER_CALLBACK_ID_CHECKPOINTS, bundle, mCheckpointLoaderCallback);
     }
 
     // public methods ***************************************************************************************************
@@ -281,6 +293,39 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
+        mCheckpointLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                int trackId = MarathonContract.INVALID_TRACK_ID;
+
+                if (args != null
+                        && args.containsKey(EXTRA_TRACK_ID)) {
+                    trackId = args.getInt(EXTRA_TRACK_ID);
+                }
+
+                Uri CHECKPOINTS_URI = MarathonContract.BASE_CONTENT_URI
+                        .buildUpon()
+                        .appendPath(MarathonContract.PATH_CHECKPOINTS)
+                        .build();
+                return new CursorLoader(MainActivity.this,
+                        CHECKPOINTS_URI,
+                        null,
+                        MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID + "=?",
+                        new String[]{String.valueOf(trackId)},
+                        MarathonContract.CheckpointEntry.COLUMN_INDEX);
+            }
+
+            @Override
+            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                data.moveToFirst();
+                mCheckpointAdapter.swapCursor(data);
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> loader) {
+            }
+        };
+
         // testing //////////////////////////////
 
         mTestLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
@@ -295,7 +340,7 @@ public class MainActivity extends AppCompatActivity
                         null,
                         null,
                         null,
-                        MarathonContract.TrackEntry._ID);
+                        MarathonContract.TrackEntry._ID + " DESC");
             }
 
             @Override
@@ -477,23 +522,22 @@ public class MainActivity extends AppCompatActivity
     // testing //////////////////////////////////
 
     public void testAddTrack(View view) {
-        ContentValues cv = new ContentValues(1);
+        ContentValues cv = new ContentValues(3);
         cv.put(MarathonContract.TrackEntry.COLUMN_NAME, "Test track");
         cv.put(MarathonContract.TrackEntry.COLUMN_IS_COMPLETE, false);
         cv.put(MarathonContract.TrackEntry.COLUMN_DURATION, 0);
 
         Uri insertUri = getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, cv);
-
         Toaster.showShort(MainActivity.this, String.valueOf(insertUri));
 
         String key = insertUri != null ? insertUri.getLastPathSegment() : null;
-        cv = new ContentValues(1);
+        cv = new ContentValues(7);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_NAME, "Test checkpoint");
         cv.put(MarathonContract.CheckpointEntry.COLUMN_INDEX, 1);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_LATITUDE, 46.3561);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE, -72.5397);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, 1);
-        cv.put(MarathonContract.CheckpointEntry.COLUMN_TIME, 123);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_TIME, System.currentTimeMillis());
         cv.put(MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID, key);
 
         Uri insertCheckpointUri = getContentResolver().insert(MarathonContract.CheckpointEntry.CONTENT_URI, cv);
