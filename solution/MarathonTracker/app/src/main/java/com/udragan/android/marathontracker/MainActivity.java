@@ -106,12 +106,6 @@ public class MainActivity extends AppCompatActivity
 
         // testing //////////////////////////////
 
-        ArrayList<CheckpointModel> testDataCheckpoints = new ArrayList<>(4);
-        testDataCheckpoints.add(new CheckpointModel(16, 45));
-        testDataCheckpoints.add(new CheckpointModel(19, 45));
-        testDataCheckpoints.add(new CheckpointModel(16, 45));
-        testDataCheckpoints.add(new CheckpointModel(19, 45));
-
         mTestTrackAdapter = new TestTrackAdapter(MainActivity.this, null);
         RecyclerView testRecyclerView = (RecyclerView) findViewById(R.id.test_recycler_view_tracks);
         testRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
@@ -121,7 +115,7 @@ public class MainActivity extends AppCompatActivity
 
         // end testing //////////////////////////
 
-        mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, testDataCheckpoints);
+        mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, null);
         mCheckpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
         mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
@@ -491,6 +485,19 @@ public class MainActivity extends AppCompatActivity
         Uri insertUri = getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, cv);
 
         Toaster.showShort(MainActivity.this, String.valueOf(insertUri));
+
+        String key = insertUri != null ? insertUri.getLastPathSegment() : null;
+        cv = new ContentValues(1);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_NAME, "Test checkpoint");
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_INDEX, 1);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_LATITUDE, 46.3561);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE, -72.5397);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, 1);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_TIME, 123);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID, key);
+
+        Uri insertCheckpointUri = getContentResolver().insert(MarathonContract.CheckpointEntry.CONTENT_URI, cv);
+        Toaster.showShort(MainActivity.this, String.valueOf(insertCheckpointUri));
     }
 
     public void testLoadTracks(View view) {
@@ -499,7 +506,6 @@ public class MainActivity extends AppCompatActivity
 
     public void testClearDb(View view) {
         int noOfDeleted = getContentResolver().delete(MarathonContract.TrackEntry.CONTENT_URI, null, null);
-
         Toaster.showShort(MainActivity.this, String.format(Locale.getDefault(), "Deleted: %d", noOfDeleted));
     }
 

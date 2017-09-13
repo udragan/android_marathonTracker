@@ -91,7 +91,7 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
     // public methods ***************************************************************************************************
 
     /**
-     * Swap adapter cursor when data is loaded.
+     * Swap adapter cursor when new data is available.
      *
      * @param cursor data provider
      */
