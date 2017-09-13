@@ -2,7 +2,9 @@ package com.udragan.android.marathontracker.testing;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,7 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
 
     private Context mContext;
     private Cursor mCursor;
+    private int mSelectedIndex;
 
     // constructors *****************************************************************************************************
 
@@ -34,6 +37,7 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
                             Cursor cursor) {
         mContext = context;
         mCursor = cursor;
+        mSelectedIndex = RecyclerView.NO_POSITION;
     }
 
     // overrides ********************************************************************************************************
@@ -61,6 +65,18 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
         holder.mNameView.setText(mCursor.getString(nameColumnIndex));
         holder.mIsComplete.setChecked(mCursor.getInt(isCompleteColumnIndex) == 1);
         holder.mDuration.setText(String.valueOf(mCursor.getLong(durationColumnIndex)));
+
+        int backgroundColor = Color.TRANSPARENT;
+
+        if (position == mSelectedIndex) {
+            TypedValue typedValue = new TypedValue();
+
+            if (mContext.getTheme().resolveAttribute(R.attr.colorAccent, typedValue, true)) {
+                backgroundColor = typedValue.data;
+            }
+        }
+
+        holder.itemView.setBackgroundColor(backgroundColor);
     }
 
     @Override
@@ -93,7 +109,8 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
 
     // ViewHolder class *************************************************************************************************
 
-    class TrackViewHolder extends RecyclerView.ViewHolder {
+    class TrackViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
         private TextView mIdView;
         private TextView mNameView;
@@ -107,6 +124,21 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
             mNameView = itemView.findViewById(R.id.track_name_text);
             mIsComplete = itemView.findViewById(R.id.track_is_complete_checkbox);
             mDuration = itemView.findViewById(R.id.track_duration_text);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            if (getAdapterPosition() == RecyclerView.NO_POSITION) {
+                return;
+            }
+
+            notifyItemChanged(mSelectedIndex);
+            mSelectedIndex = getAdapterPosition();
+            notifyItemChanged(mSelectedIndex);
+
+            // TODO: set checkpoints from selected track
         }
     }
 }
