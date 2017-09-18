@@ -197,6 +197,7 @@ public class MainActivity extends AppCompatActivity
 
     // ICursorLoaderCallback ********************************************************************************************
 
+    @Override
     public void LoadCursor(int id) {
         Bundle bundle = new Bundle(1);
         bundle.putInt(EXTRA_TRACK_ID, id);
@@ -205,11 +206,16 @@ public class MainActivity extends AppCompatActivity
 
     // public methods ***************************************************************************************************
 
+    /**
+     * OnClick method to switch Tracking service on/off.
+     *
+     * @param view view that initiated the switch
+     */
     public void switchIsTracking(View view) {
         Switch geofencingSwitch = (Switch) view;
         boolean isTracking = geofencingSwitch.isChecked();
         saveIsTrackingPreference(isTracking);
-        Intent trackerServiceIntent = new Intent(this, TrackerService.class);
+        Intent trackerServiceIntent = new Intent(MainActivity.this, TrackerService.class);
 
         if (isTracking) {
             startService(trackerServiceIntent);
@@ -296,11 +302,14 @@ public class MainActivity extends AppCompatActivity
         mCheckpointLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                Log.d(TAG, "Created CheckpointLoader");
                 int trackId = MarathonContract.INVALID_TRACK_ID;
 
                 if (args != null
                         && args.containsKey(EXTRA_TRACK_ID)) {
                     trackId = args.getInt(EXTRA_TRACK_ID);
+                    Log.v(TAG, String.format("with args: %s=%s",
+                            EXTRA_TRACK_ID, trackId));
                 }
 
                 Uri CHECKPOINTS_URI = MarathonContract.BASE_CONTENT_URI
@@ -317,6 +326,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                Log.d(TAG, String.format("CheckpointLoader finished and loaded: %d",
+                        data.getCount()));
                 data.moveToFirst();
                 mCheckpointAdapter.swapCursor(data);
             }
@@ -331,6 +342,7 @@ public class MainActivity extends AppCompatActivity
         mTestLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                Log.d(TAG, "Created TrackLoader");
                 Uri TRACKS_URI = MarathonContract.BASE_CONTENT_URI
                         .buildUpon()
                         .appendPath(MarathonContract.PATH_TRACKS)
@@ -345,6 +357,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                Log.d(TAG, String.format("TrackLoader finished and loaded: %d",
+                        data.getCount()));
                 data.moveToFirst();
                 mTestTrackAdapter.swapCursor(data);
             }

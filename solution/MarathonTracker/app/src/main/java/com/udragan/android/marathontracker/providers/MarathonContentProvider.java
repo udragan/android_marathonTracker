@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,8 @@ import java.util.Arrays;
 public class MarathonContentProvider extends ContentProvider {
 
     // members **********************************************************************************************************
+
+    private static final String TAG = MarathonContentProvider.class.getSimpleName();
 
     private static final int TRACKS = 100;
     private static final int TRACK_BY_ID = 101;
@@ -44,6 +47,7 @@ public class MarathonContentProvider extends ContentProvider {
     public boolean onCreate() {
         Context context = getContext();
         mMarathonDbHelper = new MarathonDbHelper(context);
+        Log.d(TAG, "onCreate.");
 
         return true;
     }
@@ -56,6 +60,11 @@ public class MarathonContentProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         Uri returnUri;
         long id;
+
+        Log.d(TAG, String.format("Insert for uri: %s\nmatch: %d",
+                uri, match));
+        Log.v(TAG, String.format("Values: %s",
+                contentValues));
 
         switch (match) {
             case TRACKS:
@@ -86,6 +95,8 @@ public class MarathonContentProvider extends ContentProvider {
 
         //noinspection ConstantConditions
         getContext().getContentResolver().notifyChange(uri, null);
+        Log.d(TAG, String.format("Inserted %s",
+                returnUri));
 
         return returnUri;
     }
@@ -101,6 +112,11 @@ public class MarathonContentProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         String id;
         Cursor cursor;
+
+        Log.d(TAG, String.format("Query for uri: %s\nmatch: %d",
+                uri, match));
+        Log.v(TAG, String.format("projection: %s\nselection: %s\nselectionArgs: %s\nsortOrder: %s",
+                Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder));
 
         switch (match) {
             case TRACKS:
@@ -151,6 +167,8 @@ public class MarathonContentProvider extends ContentProvider {
 
         //noinspection ConstantConditions
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        Log.d(TAG, String.format("Fetched: %d",
+                cursor.getCount()));
 
         return cursor;
     }
@@ -164,6 +182,11 @@ public class MarathonContentProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         String id;
         int noOfUpdated;
+
+        Log.d(TAG, String.format("Update for uri: %s\nmatch: %d",
+                uri, match));
+        Log.v(TAG, String.format("content: %s\nselection: %s\nselectionArgs: %s",
+                values, selection, Arrays.toString(selectionArgs)));
 
         switch (match) {
             case TRACKS:
@@ -237,6 +260,9 @@ public class MarathonContentProvider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uri, null);
         }
 
+        Log.d(TAG, String.format("Updated: %d",
+                noOfUpdated));
+
         return noOfUpdated;
     }
 
@@ -248,6 +274,11 @@ public class MarathonContentProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         String id;
         int noOfDeleted;
+
+        Log.d(TAG, String.format("Delete for uri: %s\nmatch: %d",
+                uri, match));
+        Log.v(TAG, String.format("selection: %s\nselectionArgs: %s",
+                selection, Arrays.toString(selectionArgs)));
 
         switch (match) {
             case TRACKS:
@@ -284,6 +315,9 @@ public class MarathonContentProvider extends ContentProvider {
             //noinspection ConstantConditions
             getContext().getContentResolver().notifyChange(uri, null);
         }
+
+        Log.d(TAG, String.format("Deleted: %d",
+                noOfDeleted));
 
         return noOfDeleted;
     }

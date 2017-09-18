@@ -7,6 +7,7 @@ public interface ICursorLoaderCallback {
 
     /**
      * Initiate callback to refresh cursor loader.
+     *
      * @param id identifier to refresh the loader with
      */
     void LoadCursor(int id);

@@ -55,7 +55,7 @@ public class CheckpointAdapter extends RecyclerView.Adapter<CheckpointAdapter.Ch
         }
     }
 
-    // RecyclerView.Adapter *********************************************************************************************
+    // overrides ********************************************************************************************************
 
     @Override
     public CheckpointViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -95,8 +95,11 @@ public class CheckpointAdapter extends RecyclerView.Adapter<CheckpointAdapter.Ch
     }
 
     // ViewHolder class *************************************************************************************************
+    // ******************************************************************************************************************
 
     class CheckpointViewHolder extends RecyclerView.ViewHolder {
+
+        // members ******************************************************************************************************
 
         private int id;
         private int index;
@@ -106,6 +109,8 @@ public class CheckpointAdapter extends RecyclerView.Adapter<CheckpointAdapter.Ch
         private TextView latitudeText;
         private TextView longitudeText;
         private TextView timeText;
+
+        // constructors *************************************************************************************************
 
         CheckpointViewHolder(View itemView) {
             super(itemView);
