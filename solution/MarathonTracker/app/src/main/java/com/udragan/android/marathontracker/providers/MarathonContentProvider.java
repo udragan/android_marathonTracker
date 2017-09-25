@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -99,6 +100,57 @@ public class MarathonContentProvider extends ContentProvider {
                 returnUri));
 
         return returnUri;
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri,
+                          @NonNull ContentValues[] values) {
+        int match = sUriMatcher.match(uri);
+        int noOfInserted;
+        String table;
+
+        Log.d(TAG, String.format("Bulk insert for uri: %s\nmatch: %d",
+                uri, match));
+
+        Log.v(TAG, String.format("Values: %s",
+                TextUtils.join("\n", values)));
+
+        switch (match) {
+            case TRACKS:
+                table = MarathonContract.TrackEntry.TABLE_NAME;
+                break;
+
+            case CHECKPOINTS:
+                table = MarathonContract.CheckpointEntry.TABLE_NAME;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown uri: " + uri);
+        }
+
+        final SQLiteDatabase db = mMarathonDbHelper.getWritableDatabase();
+        db.beginTransaction();
+
+        try {
+            for (ContentValues cv : values) {
+                long newID = db.insertOrThrow(table, null, cv);
+
+                if (newID <= 0) {
+                    throw new SQLException("Failed to insert row into " + uri);
+                }
+            }
+
+            db.setTransactionSuccessful();
+            //noinspection ConstantConditions
+            getContext().getContentResolver().notifyChange(uri, null);
+            noOfInserted = values.length;
+            Log.d(TAG, String.format("Bulk insert succeeded for: %s",
+                    noOfInserted));
+        } finally {
+            db.endTransaction();
+        }
+
+        return noOfInserted;
     }
 
     @Nullable
