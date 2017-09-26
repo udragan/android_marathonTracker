@@ -1,9 +1,11 @@
 package com.udragan.android.marathontracker.testing;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +14,11 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.udragan.android.marathontracker.R;
+import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.ICursorLoaderCallback;
 import com.udragan.android.marathontracker.providers.MarathonContract;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Adapter for {@link com.udragan.android.marathontracker.providers.MarathonContract.TrackEntry}.
@@ -21,6 +26,8 @@ import com.udragan.android.marathontracker.providers.MarathonContract;
 public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.TrackViewHolder> {
 
     // members **********************************************************************************************************
+
+    private static final String TAG = TestTrackAdapter.class.getSimpleName();
 
     private Context mContext;
     private Cursor mCursor;
@@ -113,6 +120,38 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
         }
     }
 
+    /**
+     * Select track by id.
+     *
+     * @param id id of the track to select
+     */
+    public void selectTrack(int id) {
+        if (mCursor != null) {
+            Log.d(TAG, String.format("Selecting track with id: %d",
+                    id));
+            int idColumnIndex = mCursor.getColumnIndex(MarathonContract.TrackEntry._ID);
+            mCursor.moveToFirst();
+            int index = 0;
+
+            while (mCursor.moveToNext()) {
+                index++;
+
+                if (mCursor.getLong(idColumnIndex) == id) {
+                    mSelectedIndex = index;
+                    notifyItemChanged(index);
+                    ((ICursorLoaderCallback) mContext).LoadCursor(id);
+
+                    return;
+                }
+            }
+
+            Log.i(TAG, String.format("Track with id: %d not found.",
+                    id));
+        } else {
+            Log.w(TAG, "Attempted to select track while track cursor is null!");
+        }
+    }
+
     // ViewHolder class *************************************************************************************************
     // ******************************************************************************************************************
 
@@ -143,17 +182,31 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
 
         @Override
         public void onClick(View view) {
-            if (getAdapterPosition() == RecyclerView.NO_POSITION) {
+            int selectedIndex = getAdapterPosition();
+
+            if (selectedIndex == RecyclerView.NO_POSITION) {
                 return;
             }
 
             notifyItemChanged(mSelectedIndex);
-            mSelectedIndex = getAdapterPosition();
+            mSelectedIndex = selectedIndex;
             notifyItemChanged(mSelectedIndex);
 
             TextView idView = view.findViewById(R.id.track_id_text);
             int id = Integer.parseInt(idView.getText().toString());
             ((ICursorLoaderCallback) mContext).LoadCursor(id);
+            saveLastActiveTrackIdPreference(id);
+        }
+
+        // private methods **********************************************************************************************
+
+        private void saveLastActiveTrackIdPreference(int id) {
+            SharedPreferences preferences = mContext.getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id);
+            editor.apply();
+            Log.v(TAG, String.format("Saved preference %s - %s",
+                    Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id));
         }
     }
 }

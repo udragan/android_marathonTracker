@@ -22,6 +22,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -361,6 +362,7 @@ public class MainActivity extends AppCompatActivity
                         data.getCount()));
                 data.moveToFirst();
                 mTestTrackAdapter.swapCursor(data);
+                mTestTrackAdapter.selectTrack(getLastActiveTrackIdPreference());
             }
 
             @Override
@@ -533,6 +535,15 @@ public class MainActivity extends AppCompatActivity
         Log.v(TAG, String.format("Saved tracking preference: %s", isTracking));
     }
 
+    private int getLastActiveTrackIdPreference() {
+        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
+        int lastActiveTrackIdPreference = preferences.getInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, Adapter.NO_SELECTION);
+        Log.v(TAG, String.format("Retrieved preference %s: %s",
+                Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, lastActiveTrackIdPreference));
+
+        return lastActiveTrackIdPreference;
+    }
+
     // testing //////////////////////////////////
 
     public void testAddTrack(View view) {
@@ -559,7 +570,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void testLoadTracks(View view) {
-
     }
 
     public void testClearDb(View view) {
