@@ -205,7 +205,7 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id);
             editor.apply();
-            Log.v(TAG, String.format("Saved preference %s - %s",
+            Log.v(TAG, String.format("Saved preference %s: %s",
                     Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id));
         }
     }

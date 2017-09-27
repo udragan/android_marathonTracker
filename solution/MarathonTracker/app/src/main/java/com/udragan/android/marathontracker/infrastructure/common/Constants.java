@@ -25,11 +25,6 @@ public class Constants {
     public static final String GLOBAL_PREFERENCES_KEY = PACKAGE_NAME + ".PREFERENCES";
 
     /**
-     * Is tracker service started preference key.
-     */
-    public static final String PREFERENCE_KEY_TRACKING = "IS_TRACKING";
-
-    /**
      * Id of the last active track preference key.
      */
     public static final String PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID = "LAST_ACTIVE_TRACK_ID";

@@ -41,6 +41,7 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
+import com.udragan.android.marathontracker.helpers.ServiceHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
@@ -215,7 +216,6 @@ public class MainActivity extends AppCompatActivity
     public void switchIsTracking(View view) {
         Switch geofencingSwitch = (Switch) view;
         boolean isTracking = geofencingSwitch.isChecked();
-        saveIsTrackingPreference(isTracking);
         Intent trackerServiceIntent = new Intent(MainActivity.this, TrackerService.class);
 
         if (isTracking) {
@@ -234,7 +234,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                 Log.d(TAG, "Location service settings sufficient, getting last known location...");
-                mTrackingSwitch.setChecked(getIsTrackingPreference());
+                boolean isTrackerServiceRunning = ServiceHelper.isServiceRunning(TrackerService.class, MainActivity.this);
+                mTrackingSwitch.setChecked(isTrackerServiceRunning);
                 //noinspection MissingPermission
                 mFusedLocationProviderClient.getLastLocation()
                         .addOnSuccessListener(MainActivity.this, mLocationSuccessListener);
@@ -517,22 +518,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         return getString(R.string.not_applicable);
-    }
-
-    private boolean getIsTrackingPreference() {
-        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        boolean trackingPreference = preferences.getBoolean(Constants.PREFERENCE_KEY_TRACKING, false);
-        Log.v(TAG, String.format("Retrieved tracking preference: %s", trackingPreference));
-
-        return trackingPreference;
-    }
-
-    private void saveIsTrackingPreference(boolean isTracking) {
-        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(Constants.PREFERENCE_KEY_TRACKING, isTracking);
-        editor.apply();
-        Log.v(TAG, String.format("Saved tracking preference: %s", isTracking));
     }
 
     private int getLastActiveTrackIdPreference() {
