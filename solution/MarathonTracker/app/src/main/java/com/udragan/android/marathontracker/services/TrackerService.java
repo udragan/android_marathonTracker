@@ -1,10 +1,9 @@
 package com.udragan.android.marathontracker.services;
 
 import android.Manifest;
-import android.app.NotificationManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
@@ -36,10 +35,9 @@ public class TrackerService extends Service
     private static final String TAG = TrackerService.class.getSimpleName();
     private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 2;
 
-    private NotificationManager mNotificationManager;
     private GeofencingClient mGeofencingClient;
     private PendingIntent mGeofenceIntentServicePendingIntent;
-    private PendingIntent mMainActivityPendingIntent;
+    private Notification mStickyNotification;
 
     private OnCompleteListener<Void> mAddGeofencesListener;
     private OnCompleteListener<Void> mRemoveGeofencesListener;
@@ -60,7 +58,6 @@ public class TrackerService extends Service
     public void onCreate() {
         super.onCreate();
 
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
     }
 
@@ -75,7 +72,7 @@ public class TrackerService extends Service
             //noinspection MissingPermission
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
                     .addOnCompleteListener(mAddGeofencesListener);
-            sendStickyNotification();
+            startForeground(startId, getStickyNotification());
         }
 
         return START_STICKY;
@@ -88,8 +85,7 @@ public class TrackerService extends Service
         mGeofencingClient.removeGeofences(getGeofencingPendingIntent())
                 .addOnCompleteListener(mRemoveGeofencesListener);
         mGeofencingClient = null;
-        //TODO: cancel only if it is started
-        cancelStickyNotification();
+
         Log.d(TAG, "onDestroy.");
     }
 
@@ -177,31 +173,25 @@ public class TrackerService extends Service
         return mGeofenceIntentServicePendingIntent;
     }
 
-    private void sendStickyNotification() {
-        if (mMainActivityPendingIntent == null) {
-            Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
-            mMainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
-                    MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
-                    mainActivityIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
+    private Notification getStickyNotification() {
+        if (mStickyNotification != null) {
+            return mStickyNotification;
         }
 
+        Intent mainActivityIntent = new Intent(TrackerService.this, MainActivity.class);
+        PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(TrackerService.this,
+                MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
+                mainActivityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(TrackerService.this)
                 .setContentTitle("Marathon Tracker")
                 .setContentText("service running")
-                .setContentIntent(mMainActivityPendingIntent)
-                .setSmallIcon(R.drawable.ic_notification_small)
-                .setOngoing(true)
-                .setAutoCancel(false);
+                .setContentIntent(mainActivityPendingIntent)
+                .setSmallIcon(R.drawable.ic_notification_small);
+                //.setOngoing(true)
+                //.setAutoCancel(false);
+        mStickyNotification = notificationBuilder.build();
 
-        mNotificationManager.notify(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION,
-                notificationBuilder.build());
-
-        Log.d(TAG, "Sent sticky notification.");
-    }
-
-    private void cancelStickyNotification() {
-        mNotificationManager.cancel(MainActivity.REQUEST_CODE_MAIN_ACTIVITY_NOTIFICATION);
-        Log.d(TAG, "Canceled sticky notification.");
+        return mStickyNotification;
     }
 }
