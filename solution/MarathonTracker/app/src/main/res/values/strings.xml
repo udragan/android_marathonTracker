@@ -34,4 +34,5 @@
     <string name="toast_add_geofence_failed">Failed to add geofences!</string>
     <string name="toast_remove_geofence_successful">Successfully removed geofences.</string>
     <string name="toast_remove_geofence_failed">Failed to remove geofences!</string>
+    <string name="toast_add_track_successful">Successfully added track(s).</string>
 </resources>

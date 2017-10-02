@@ -20,6 +20,11 @@ public class Constants {
     // application wide constants ***************************************************************************************
 
     /**
+     * Invalid time in milliseconds.
+     */
+    public static final long INVALID_TIME_MILLIS = -1;
+
+    /**
      * Name of the global preferences file.
      */
     public static final String GLOBAL_PREFERENCES_KEY = PACKAGE_NAME + ".PREFERENCES";

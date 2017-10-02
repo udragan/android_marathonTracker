@@ -17,6 +17,8 @@ public class MarathonContract {
     public static final String PATH_TRACKS = "tracks";
     public static final String PATH_CHECKPOINTS = "checkpoints";
     public static final int INVALID_TRACK_ID = -1;
+    public static final int INVALID_CHECKPOINT_ID = -1;
+    public static final int INVALID_CHECKPOINT_INDEX = -1;
 
     /**
      * Track table declaration.

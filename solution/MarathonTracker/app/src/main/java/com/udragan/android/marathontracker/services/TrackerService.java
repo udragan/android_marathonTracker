@@ -188,8 +188,6 @@ public class TrackerService extends Service
                 .setContentText("service running")
                 .setContentIntent(mainActivityPendingIntent)
                 .setSmallIcon(R.drawable.ic_notification_small);
-                //.setOngoing(true)
-                //.setAutoCancel(false);
         mStickyNotification = notificationBuilder.build();
 
         return mStickyNotification;

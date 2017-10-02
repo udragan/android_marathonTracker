@@ -41,19 +41,26 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
+import com.udragan.android.marathontracker.asyncTasks.DownloadTracksTask;
 import com.udragan.android.marathontracker.helpers.ServiceHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
 import com.udragan.android.marathontracker.infrastructure.interfaces.ICursorLoaderCallback;
+import com.udragan.android.marathontracker.infrastructure.interfaces.IDownloadTrackCallback;
+import com.udragan.android.marathontracker.models.CheckpointModel;
+import com.udragan.android.marathontracker.models.TrackModel;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 import com.udragan.android.marathontracker.services.TrackerService;
 import com.udragan.android.marathontracker.testing.TestTrackAdapter;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements IActivity, ICursorLoaderCallback {
+        implements IActivity, ICursorLoaderCallback, IDownloadTrackCallback {
 
     // members **********************************************************************************************************
 
@@ -204,6 +211,44 @@ public class MainActivity extends AppCompatActivity
         Bundle bundle = new Bundle(1);
         bundle.putInt(EXTRA_TRACK_ID, id);
         getSupportLoaderManager().restartLoader(LOADER_CALLBACK_ID_CHECKPOINTS, bundle, mCheckpointLoaderCallback);
+    }
+
+    // IDownloadTrackTaskCallback ***************************************************************************************
+
+    @Override
+    public void tracksDownloaded(List<TrackModel> tracks) {
+        for (TrackModel track : tracks) {
+            ContentValues trackCV = new ContentValues(3);
+            trackCV.put(MarathonContract.TrackEntry.COLUMN_NAME, track.getName());
+            trackCV.put(MarathonContract.TrackEntry.COLUMN_IS_COMPLETE, track.getIsComplete());
+            trackCV.put(MarathonContract.TrackEntry.COLUMN_DURATION, track.getDuration());
+            Uri insertUri = getContentResolver().insert(MarathonContract.TrackEntry.CONTENT_URI, trackCV);
+            String key = insertUri != null ? insertUri.getLastPathSegment() : null;
+
+            if (key == null) {
+                continue;
+            }
+
+            List<ContentValues> checkpointCVs = new ArrayList<>(track.getCheckpoints().size());
+
+            for (CheckpointModel checkpoint : track.getCheckpoints()) {
+                ContentValues checkpointCV = new ContentValues(7);
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_NAME, checkpoint.getName());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_INDEX, checkpoint.getIndex());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_LATITUDE, checkpoint.getLatitude());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE, checkpoint.getLongitude());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, checkpoint.getIsChecked());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_TIME, checkpoint.getTime());
+                checkpointCV.put(MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID, key);
+
+                checkpointCVs.add(checkpointCV);
+            }
+
+            getContentResolver().bulkInsert(MarathonContract.CheckpointEntry.CONTENT_URI,
+                    checkpointCVs.toArray(new ContentValues[0]));
+
+            Toaster.showShort(MainActivity.this, R.string.toast_add_track_successful);
+        }
     }
 
     // public methods ***************************************************************************************************
@@ -555,6 +600,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void testLoadTracks(View view) {
+        InputStream is = getResources().openRawResource(R.raw.tracks);
+        DownloadTracksTask task = new DownloadTracksTask(MainActivity.this);
+        task.execute(is);
+        Toaster.showShort(MainActivity.this, "Started loading tracks from file...");
     }
 
     public void testClearDb(View view) {
