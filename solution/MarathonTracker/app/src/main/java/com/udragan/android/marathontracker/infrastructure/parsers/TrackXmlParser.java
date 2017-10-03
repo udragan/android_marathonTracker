@@ -3,6 +3,7 @@ package com.udragan.android.marathontracker.infrastructure.parsers;
 import android.util.Xml;
 
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
+import com.udragan.android.marathontracker.infrastructure.common.XmlParserBase;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.models.TrackModel;
 import com.udragan.android.marathontracker.providers.MarathonContract;
@@ -18,11 +19,7 @@ import java.util.List;
 /**
  * Xml parser for tracks.
  */
-public class TrackXmlParser {
-
-    // members **********************************************************************************************************
-
-    private static final String NS = null;
+public class TrackXmlParser extends XmlParserBase {
 
     // public methods ***************************************************************************************************
 
@@ -52,7 +49,7 @@ public class TrackXmlParser {
 
     private List<TrackModel> readTracks(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, NS, "tracks");
+        parser.require(XmlPullParser.START_TAG, getNS(), "tracks");
 
         List<TrackModel> tracks = new ArrayList<>();
 
@@ -75,7 +72,7 @@ public class TrackXmlParser {
 
     private TrackModel readTrack(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, NS, "track");
+        parser.require(XmlPullParser.START_TAG, getNS(), "track");
 
         int id = MarathonContract.INVALID_TRACK_ID;
         String trackName = "";
@@ -112,7 +109,7 @@ public class TrackXmlParser {
 
     private List<CheckpointModel> readCheckpoints(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, NS, "checkpoints");
+        parser.require(XmlPullParser.START_TAG, getNS(), "checkpoints");
 
         List<CheckpointModel> checkpoints = new ArrayList<>();
 
@@ -135,7 +132,7 @@ public class TrackXmlParser {
 
     private CheckpointModel readCheckpoint(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, NS, "checkpoint");
+        parser.require(XmlPullParser.START_TAG, getNS(), "checkpoint");
 
         int id = MarathonContract.INVALID_CHECKPOINT_ID;
         String checkpointName = "";
@@ -194,75 +191,5 @@ public class TrackXmlParser {
                 lon,
                 isChecked,
                 time);
-    }
-
-    private boolean readBoolean(XmlPullParser parser, String tagName)
-            throws XmlPullParserException, IOException {
-        String value = readString(parser, tagName);
-
-        return Boolean.parseBoolean(value);
-    }
-
-    private int readInt(XmlPullParser parser, String tagName)
-            throws XmlPullParserException, IOException {
-        String value = readString(parser, tagName);
-
-        return Integer.parseInt(value);
-    }
-
-    private long readLong(XmlPullParser parser, String tagName)
-            throws XmlPullParserException, IOException {
-        String value = readString(parser, tagName);
-
-        return Long.parseLong(value);
-    }
-
-    private double readDouble(XmlPullParser parser, String tagName)
-            throws XmlPullParserException, IOException {
-        String value = readString(parser, tagName);
-
-        return Double.parseDouble(value);
-    }
-
-    private String readString(XmlPullParser parser, String tagName)
-            throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, NS, tagName);
-        String value = readText(parser);
-        parser.require(XmlPullParser.END_TAG, NS, tagName);
-
-        return value;
-    }
-
-    private String readText(XmlPullParser parser)
-            throws IOException, XmlPullParserException {
-        String result = "";
-
-        if (parser.next() == XmlPullParser.TEXT) {
-            result = parser.getText();
-            parser.nextTag();
-        }
-
-        return result;
-    }
-
-    private void skip(XmlPullParser parser)
-            throws XmlPullParserException, IOException {
-        if (parser.getEventType() != XmlPullParser.START_TAG) {
-            throw new IllegalStateException();
-        }
-
-        int depth = 1;
-
-        while (depth != 0) {
-            switch (parser.next()) {
-                case XmlPullParser.START_TAG:
-                    depth++;
-                    break;
-
-                case XmlPullParser.END_TAG:
-                    depth--;
-                    break;
-            }
-        }
     }
 }
