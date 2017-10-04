@@ -129,20 +129,22 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
         if (mCursor != null) {
             Log.d(TAG, String.format("Selecting track with id: %d",
                     id));
-            int idColumnIndex = mCursor.getColumnIndex(MarathonContract.TrackEntry._ID);
-            mCursor.moveToFirst();
-            int index = 0;
 
-            while (mCursor.moveToNext()) {
-                index++;
+            if (mCursor.moveToFirst()) {
+                int idColumnIndex = mCursor.getColumnIndex(MarathonContract.TrackEntry._ID);
+                int index = 0;
 
-                if (mCursor.getLong(idColumnIndex) == id) {
-                    mSelectedIndex = index;
-                    notifyItemChanged(index);
-                    ((ICursorLoaderCallback) mContext).LoadCursor(id);
+                do {
+                    if (mCursor.getInt(idColumnIndex) == id) {
+                        mSelectedIndex = index;
+                        notifyItemChanged(mSelectedIndex);
+                        ((ICursorLoaderCallback) mContext).LoadCursor(id);
 
-                    return;
-                }
+                        return;
+                    }
+
+                    index++;
+                } while (mCursor.moveToNext());
             }
 
             Log.i(TAG, String.format("Track with id: %d not found.",
