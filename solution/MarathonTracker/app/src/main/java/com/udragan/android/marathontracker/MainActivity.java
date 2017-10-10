@@ -52,7 +52,7 @@ import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.models.TrackModel;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 import com.udragan.android.marathontracker.services.TrackerService;
-import com.udragan.android.marathontracker.testing.TestTrackAdapter;
+import com.udragan.android.marathontracker.adapters.TrackAdapter;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity
     private TextView mLongitudeView;
     private TextView mSpeedView;
     private TextView mBearingView;
+    private TrackAdapter mTrackAdapter;
     private RecyclerView mCheckpointsRecyclerView;
     private CheckpointAdapter mCheckpointAdapter;
 
@@ -89,14 +90,8 @@ public class MainActivity extends AppCompatActivity
     private OnFailureListener mLocationSettingsFailureListener;
     private OnSuccessListener<Location> mLocationSuccessListener;
     private LocationCallback mLocationCallback;
+    private LoaderManager.LoaderCallbacks<Cursor> mTrackLoaderCallback;
     private LoaderManager.LoaderCallbacks<Cursor> mCheckpointLoaderCallback;
-
-    // testing //////////////////////////////////
-
-    private LoaderManager.LoaderCallbacks<Cursor> mTestLoaderCallback;
-    private TestTrackAdapter mTestTrackAdapter;
-
-    ///end testing //////////////////////////////
 
     // overrides ********************************************************************************************************
 
@@ -116,22 +111,18 @@ public class MainActivity extends AppCompatActivity
         Toolbar appBar = (Toolbar) findViewById(R.id.toolbar_main_activity);
         setSupportActionBar(appBar);
 
-        // testing //////////////////////////////
-
-        mTestTrackAdapter = new TestTrackAdapter(MainActivity.this, null);
-        RecyclerView testRecyclerView = (RecyclerView) findViewById(R.id.test_recycler_view_tracks);
-        testRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        testRecyclerView.setAdapter(mTestTrackAdapter);
-
-        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_TRACKS, null, mTestLoaderCallback);
-        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_CHECKPOINTS, null, mCheckpointLoaderCallback);
-
-        // end testing //////////////////////////
+        mTrackAdapter = new TrackAdapter(MainActivity.this, null);
+        RecyclerView tracksRecyclerView = (RecyclerView) findViewById(R.id.tracks_recycler_view_main_activity);
+        tracksRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        tracksRecyclerView.setAdapter(mTrackAdapter);
 
         mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, null);
         mCheckpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
         mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
+
+        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_TRACKS, null, mTrackLoaderCallback);
+        getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_CHECKPOINTS, null, mCheckpointLoaderCallback);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
     }
@@ -346,6 +337,36 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
+        mTrackLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                Log.d(TAG, "Created TrackLoader");
+                Uri TRACKS_URI = MarathonContract.BASE_CONTENT_URI
+                        .buildUpon()
+                        .appendPath(MarathonContract.PATH_TRACKS)
+                        .build();
+                return new CursorLoader(MainActivity.this,
+                        TRACKS_URI,
+                        null,
+                        null,
+                        null,
+                        MarathonContract.TrackEntry._ID + " DESC");
+            }
+
+            @Override
+            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                Log.d(TAG, String.format("TrackLoader finished and loaded: %d",
+                        data.getCount()));
+                data.moveToFirst();
+                mTrackAdapter.swapCursor(data);
+                mTrackAdapter.selectTrack(getLastActiveTrackIdPreference());
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> loader) {
+            }
+        };
+
         mCheckpointLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -383,40 +404,6 @@ public class MainActivity extends AppCompatActivity
             public void onLoaderReset(Loader<Cursor> loader) {
             }
         };
-
-        // testing //////////////////////////////
-
-        mTestLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
-            @Override
-            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                Log.d(TAG, "Created TrackLoader");
-                Uri TRACKS_URI = MarathonContract.BASE_CONTENT_URI
-                        .buildUpon()
-                        .appendPath(MarathonContract.PATH_TRACKS)
-                        .build();
-                return new CursorLoader(MainActivity.this,
-                        TRACKS_URI,
-                        null,
-                        null,
-                        null,
-                        MarathonContract.TrackEntry._ID + " DESC");
-            }
-
-            @Override
-            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-                Log.d(TAG, String.format("TrackLoader finished and loaded: %d",
-                        data.getCount()));
-                data.moveToFirst();
-                mTestTrackAdapter.swapCursor(data);
-                mTestTrackAdapter.selectTrack(getLastActiveTrackIdPreference());
-            }
-
-            @Override
-            public void onLoaderReset(Loader<Cursor> loader) {
-            }
-        };
-
-        ///end testing //////////////////////////
     }
 
     private boolean checkPermissions() {

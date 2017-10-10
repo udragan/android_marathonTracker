@@ -1,4 +1,4 @@
-package com.udragan.android.marathontracker.testing;
+package com.udragan.android.marathontracker.adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -23,11 +23,11 @@ import static android.content.Context.MODE_PRIVATE;
 /**
  * Adapter for {@link com.udragan.android.marathontracker.providers.MarathonContract.TrackEntry}.
  */
-public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.TrackViewHolder> {
+public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHolder> {
 
     // members **********************************************************************************************************
 
-    private static final String TAG = TestTrackAdapter.class.getSimpleName();
+    private static final String TAG = TrackAdapter.class.getSimpleName();
 
     private Context mContext;
     private Cursor mCursor;
@@ -36,13 +36,13 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
     // constructors *****************************************************************************************************
 
     /**
-     * Initializes a new instance of {@link com.udragan.android.marathontracker.testing.TestTrackAdapter} class.
+     * Initializes a new instance of {@link TrackAdapter} class.
      *
      * @param context context
      * @param cursor  cursor to providing data
      */
-    public TestTrackAdapter(Context context,
-                            Cursor cursor) {
+    public TrackAdapter(Context context,
+                        Cursor cursor) {
         if (!(context instanceof ICursorLoaderCallback)) {
             throw new ClassCastException(String.format("Provided context does not implement '%s'",
                     ICursorLoaderCallback.class.getSimpleName()));
@@ -59,7 +59,7 @@ public class TestTrackAdapter extends RecyclerView.Adapter<TestTrackAdapter.Trac
     public TrackViewHolder onCreateViewHolder(ViewGroup parent,
                                               int viewType) {
         LayoutInflater inflater = LayoutInflater.from(mContext);
-        View view = inflater.inflate(R.layout.test_track_view, parent, false);
+        View view = inflater.inflate(R.layout.track_view, parent, false);
 
         return new TrackViewHolder(view);
     }
