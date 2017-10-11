@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity
     private TextView mSpeedView;
     private TextView mBearingView;
     private TrackAdapter mTrackAdapter;
-    private RecyclerView mCheckpointsRecyclerView;
     private CheckpointAdapter mCheckpointAdapter;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -117,9 +116,9 @@ public class MainActivity extends AppCompatActivity
         tracksRecyclerView.setAdapter(mTrackAdapter);
 
         mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, null);
-        mCheckpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
-        mCheckpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        mCheckpointsRecyclerView.setAdapter(mCheckpointAdapter);
+        RecyclerView checkpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
+        checkpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        checkpointsRecyclerView.setAdapter(mCheckpointAdapter);
 
         getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_TRACKS, null, mTrackLoaderCallback);
         getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_CHECKPOINTS, null, mCheckpointLoaderCallback);
