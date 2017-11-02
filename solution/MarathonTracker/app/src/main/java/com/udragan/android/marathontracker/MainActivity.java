@@ -575,9 +575,9 @@ public class MainActivity extends AppCompatActivity
         cv = new ContentValues(7);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_NAME, "Test checkpoint");
         cv.put(MarathonContract.CheckpointEntry.COLUMN_INDEX, 1);
-        cv.put(MarathonContract.CheckpointEntry.COLUMN_LATITUDE, 46.3561);
-        cv.put(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE, -72.5397);
-        cv.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, 1);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_LATITUDE, 37.4226);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE, -122.084);
+        cv.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, false);
         cv.put(MarathonContract.CheckpointEntry.COLUMN_TIME, System.currentTimeMillis());
         cv.put(MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID, key);
 

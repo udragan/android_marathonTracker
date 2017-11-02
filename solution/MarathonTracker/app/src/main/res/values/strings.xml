@@ -26,6 +26,7 @@
     <string name="geofence_error_unknown_error">Unknown error: Geofence service not available.</string>
 
     <!-- toast messages -->
+
     <string name="toast_location_stale">Last known location is stale!</string>
     <string name="toast_location_permission_denied">Location permission denied!</string>
     <string name="toast_location_services_off">Location services turned off!</string>
@@ -35,4 +36,5 @@
     <string name="toast_remove_geofence_successful">Successfully removed geofences.</string>
     <string name="toast_remove_geofence_failed">Failed to remove geofences!</string>
     <string name="toast_add_track_successful">Successfully added track(s).</string>
+    <string name="toast_checkpoint_not_in_order">Visited checkpoint not in order!</string>
 </resources>

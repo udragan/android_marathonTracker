@@ -141,12 +141,12 @@ public class TrackerService extends Service
 
     @NonNull
     private GeofencingRequest getGeofencingRequest() {
-        // TODO: hardcoded geofence for testing, 53.219193, 6.567972
+        // TODO: hardcoded geofence for testing, 37.4226, -122.084 ( Googleplex )
         // will be provided from mainActivity upon starting the service/turning on the tracker switch.
         // transitionTypes and initialTrigger will be refined.
         Geofence geofence = new Geofence.Builder()
                 .setRequestId("testGeofenceId")
-                .setCircularRegion(53.219193, 6.567972, 100)
+                .setCircularRegion(37.4226, -122.084, 100)
                 .setExpirationDuration(2 * 60 * 1000)
                 .setTransitionTypes(GeofencingRequest.INITIAL_TRIGGER_ENTER |
                         GeofencingRequest.INITIAL_TRIGGER_EXIT)
