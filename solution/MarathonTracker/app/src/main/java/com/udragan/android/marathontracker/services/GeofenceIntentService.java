@@ -6,13 +6,11 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Adapter;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
@@ -76,7 +74,7 @@ public class GeofenceIntentService extends IntentService
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Cursor cursor = getCheckpoints();
+            Cursor cursor = getCheckpoints(intent);
 
             if (cursor != null &&
                     cursor.moveToNext()) {
@@ -85,7 +83,6 @@ public class GeofenceIntentService extends IntentService
 
                 double latitude = cursor.getDouble(latitudeColumnIndex);
                 double longitude = cursor.getDouble(longitudeColumnIndex);
-
                 double transitionLatitude = geofencingEvent.getTriggeringLocation().getLatitude();
                 double transitionLongitude = geofencingEvent.getTriggeringLocation().getLongitude();
 
@@ -108,18 +105,15 @@ public class GeofenceIntentService extends IntentService
         }
     }
 
-    private Cursor getCheckpoints() {
-        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        int lastActiveTrackIdPreference = preferences.getInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, Adapter.NO_SELECTION);
+    private Cursor getCheckpoints(Intent intent) {
+        int trackId = intent.getIntExtra(Constants.EXTRA_TRACK_ID, MarathonContract.INVALID_TRACK_ID);
 
         String selection = MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID + "=? AND " +
                 MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED + "=?";
         String[] selectionArgs = new String[]{
-                String.valueOf(lastActiveTrackIdPreference),
+                String.valueOf(trackId),
                 String.valueOf(0)};
 
-        Log.v(TAG, String.format("Retrieved preference %s: %s",
-                Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, lastActiveTrackIdPreference));
         Log.v(TAG, String.format("Selection: %s",
                 selection));
         Log.v(TAG, String.format("Selection args: %s",

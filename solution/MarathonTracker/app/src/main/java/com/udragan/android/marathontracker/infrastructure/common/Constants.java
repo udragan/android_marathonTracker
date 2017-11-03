@@ -33,4 +33,9 @@ public class Constants {
      * Id of the last active track preference key.
      */
     public static final String PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID = "LAST_ACTIVE_TRACK_ID";
+
+    /**
+     * Id for TrackId extra inside bundle or intent.
+     */
+    public static final String EXTRA_TRACK_ID = Constants.PACKAGE_NAME + ".extra.TRACK_ID";
 }

@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_CODE_CHECK_LOCATION_SETTINGS = REQUEST_CODE_BASE + 11;
     private static final int LOADER_CALLBACK_ID_TRACKS = REQUEST_CODE_BASE + 20;
     private static final int LOADER_CALLBACK_ID_CHECKPOINTS = REQUEST_CODE_BASE + 21;
-    private static final String EXTRA_TRACK_ID = Constants.PACKAGE_NAME + ".TRACK_ID";
 
     private Switch mTrackingSwitch;
     private TextView mLatitudeView;
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void LoadCursor(int id) {
         Bundle bundle = new Bundle(1);
-        bundle.putInt(EXTRA_TRACK_ID, id);
+        bundle.putInt(Constants.EXTRA_TRACK_ID, id);
         getSupportLoaderManager().restartLoader(LOADER_CALLBACK_ID_CHECKPOINTS, bundle, mCheckpointLoaderCallback);
     }
 
@@ -252,6 +251,7 @@ public class MainActivity extends AppCompatActivity
         Switch geofencingSwitch = (Switch) view;
         boolean isTracking = geofencingSwitch.isChecked();
         Intent trackerServiceIntent = new Intent(MainActivity.this, TrackerService.class);
+        trackerServiceIntent.putExtra(Constants.EXTRA_TRACK_ID, getLastActiveTrackIdPreference());
 
         if (isTracking) {
             startService(trackerServiceIntent);
@@ -373,10 +373,10 @@ public class MainActivity extends AppCompatActivity
                 int trackId = MarathonContract.INVALID_TRACK_ID;
 
                 if (args != null
-                        && args.containsKey(EXTRA_TRACK_ID)) {
-                    trackId = args.getInt(EXTRA_TRACK_ID);
+                        && args.containsKey(Constants.EXTRA_TRACK_ID)) {
+                    trackId = args.getInt(Constants.EXTRA_TRACK_ID);
                     Log.v(TAG, String.format("with args: %s=%s",
-                            EXTRA_TRACK_ID, trackId));
+                            Constants.EXTRA_TRACK_ID, trackId));
                 }
 
                 Uri CHECKPOINTS_URI = MarathonContract.BASE_CONTENT_URI

@@ -22,7 +22,9 @@ import com.udragan.android.marathontracker.MainActivity;
 import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
+import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
+import com.udragan.android.marathontracker.providers.MarathonContract;
 
 /**
  * A background service for managing the geofencing client.
@@ -68,9 +70,12 @@ public class TrackerService extends Service
 
         // TODO: implement consistent permission checks!
         if (checkPermissions()) {
+            int trackId = intent.getIntExtra(Constants.EXTRA_TRACK_ID, MarathonContract.INVALID_TRACK_ID);
+
+            // TODO: move to worker thread since we will contact the database in getGeofencingRequest()
             Log.d(TAG, "Adding geofences...");
             //noinspection MissingPermission
-            mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent())
+            mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent(trackId))
                     .addOnCompleteListener(mAddGeofencesListener);
             startForeground(startId, getStickyNotification());
         }
@@ -82,7 +87,7 @@ public class TrackerService extends Service
     public void onDestroy() {
         super.onDestroy();
 
-        mGeofencingClient.removeGeofences(getGeofencingPendingIntent())
+        mGeofencingClient.removeGeofences(getGeofencingPendingIntent(MarathonContract.INVALID_TRACK_ID))
                 .addOnCompleteListener(mRemoveGeofencesListener);
         mGeofencingClient = null;
 
@@ -158,12 +163,13 @@ public class TrackerService extends Service
         return requestBuilder.build();
     }
 
-    private PendingIntent getGeofencingPendingIntent() {
+    private PendingIntent getGeofencingPendingIntent(int trackId) {
         if (mGeofenceIntentServicePendingIntent != null) {
             return mGeofenceIntentServicePendingIntent;
         }
 
         Intent intent = new Intent(TrackerService.this, GeofenceIntentService.class);
+        intent.putExtra(Constants.EXTRA_TRACK_ID, trackId);
 
         mGeofenceIntentServicePendingIntent = PendingIntent.getService(TrackerService.this,
                 REQUEST_CODE_GEOFENCE_INTENT_SERVICE,
