@@ -86,7 +86,7 @@ public class GeofenceIntentService extends IntentService
                 double transitionLatitude = geofencingEvent.getTriggeringLocation().getLatitude();
                 double transitionLongitude = geofencingEvent.getTriggeringLocation().getLongitude();
 
-                //TODO: move radiusMeters to config - it is the same as the radius when registering geofences.
+                //TODO user config: move radiusMeters to config - it is the same as the radius when registering geofences.
                 int radiusMeters = 100;
                 float[] distance = new float[1];
 

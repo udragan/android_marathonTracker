@@ -41,6 +41,7 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.udragan.android.marathontracker.adapters.CheckpointAdapter;
+import com.udragan.android.marathontracker.adapters.TrackAdapter;
 import com.udragan.android.marathontracker.asyncTasks.DownloadTracksTask;
 import com.udragan.android.marathontracker.helpers.ServiceHelper;
 import com.udragan.android.marathontracker.infrastructure.Toaster;
@@ -52,7 +53,6 @@ import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.models.TrackModel;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 import com.udragan.android.marathontracker.services.TrackerService;
-import com.udragan.android.marathontracker.adapters.TrackAdapter;
 
 import java.io.InputStream;
 import java.util.ArrayList;

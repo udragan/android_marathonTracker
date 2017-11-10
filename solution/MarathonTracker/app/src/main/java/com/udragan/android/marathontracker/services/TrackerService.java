@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.content.PermissionChecker;
@@ -25,6 +26,9 @@ import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 import com.udragan.android.marathontracker.providers.MarathonContract;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A background service for managing the geofencing client.
@@ -75,7 +79,7 @@ public class TrackerService extends Service
             // TODO: move to worker thread since we will contact the database in getGeofencingRequest()
             Log.d(TAG, "Adding geofences...");
             //noinspection MissingPermission
-            mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencingPendingIntent(trackId))
+            mGeofencingClient.addGeofences(getGeofencingRequest(trackId), getGeofencingPendingIntent(trackId))
                     .addOnCompleteListener(mAddGeofencesListener);
             startForeground(startId, getStickyNotification());
         }
@@ -145,22 +149,61 @@ public class TrackerService extends Service
     }
 
     @NonNull
-    private GeofencingRequest getGeofencingRequest() {
-        // TODO: hardcoded geofence for testing, 37.4226, -122.084 ( Googleplex )
-        // will be provided from mainActivity upon starting the service/turning on the tracker switch.
-        // transitionTypes and initialTrigger will be refined.
-        Geofence geofence = new Geofence.Builder()
-                .setRequestId("testGeofenceId")
-                .setCircularRegion(37.4226, -122.084, 100)
-                .setExpirationDuration(2 * 60 * 1000)
-                .setTransitionTypes(GeofencingRequest.INITIAL_TRIGGER_ENTER |
-                        GeofencingRequest.INITIAL_TRIGGER_EXIT)
-                .build();
+    private GeofencingRequest getGeofencingRequest(int trackId) {
+        List<Geofence> geofences;
+
+        try (Cursor cursor = getCheckpoints(trackId)) {
+            geofences = getGeofences(cursor);
+        }
+
         GeofencingRequest.Builder requestBuilder = new GeofencingRequest.Builder()
                 .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-                .addGeofence(geofence);
+                .addGeofences(geofences);
 
         return requestBuilder.build();
+    }
+
+    private Cursor getCheckpoints(int trackId) {
+        String selection = MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID + "=?";
+        String[] selectionArgs = new String[]{
+                String.valueOf(trackId)};
+
+        Log.v(TAG, String.format("Selection: %s",
+                selection));
+        Log.v(TAG, String.format("Selection args: %s",
+                (Object[]) selectionArgs));
+
+        return getContentResolver().query(MarathonContract.CheckpointEntry.CONTENT_URI,
+                null,
+                selection,
+                selectionArgs,
+                MarathonContract.CheckpointEntry.COLUMN_INDEX);
+    }
+
+    private List<Geofence> getGeofences(Cursor cursor) {
+        //hardcoded geofence for testing, 37.4226, -122.084 ( Googleplex )
+        List<Geofence> result = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            int nameColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_NAME);
+            int latitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LATITUDE);
+            int longitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE);
+
+            String name = cursor.getString(nameColumnIndex);
+            double latitude = cursor.getDouble(latitudeColumnIndex);
+            double longitude = cursor.getDouble(longitudeColumnIndex);
+
+            Geofence geofence = new Geofence.Builder()
+                    .setRequestId(name)
+                    .setCircularRegion(latitude, longitude, 100)
+                    .setExpirationDuration(2 * 60 * 1000) //TODO: this should be part of the track data
+                    .setTransitionTypes(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .build();
+
+            result.add(geofence);
+        }
+
+        return result;
     }
 
     private PendingIntent getGeofencingPendingIntent(int trackId) {
