@@ -74,38 +74,36 @@ public class GeofenceIntentService extends IntentService
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Cursor cursor = getCheckpoints(intent);
+            try (Cursor cursor = getUnvisitedCheckpoints(intent)) {
+                if (cursor.moveToNext()) {
+                    int latitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LATITUDE);
+                    int longitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE);
 
-            if (cursor != null &&
-                    cursor.moveToNext()) {
-                int latitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LATITUDE);
-                int longitudeColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_LONGITUDE);
+                    double latitude = cursor.getDouble(latitudeColumnIndex);
+                    double longitude = cursor.getDouble(longitudeColumnIndex);
+                    double transitionLatitude = geofencingEvent.getTriggeringLocation().getLatitude();
+                    double transitionLongitude = geofencingEvent.getTriggeringLocation().getLongitude();
 
-                double latitude = cursor.getDouble(latitudeColumnIndex);
-                double longitude = cursor.getDouble(longitudeColumnIndex);
-                double transitionLatitude = geofencingEvent.getTriggeringLocation().getLatitude();
-                double transitionLongitude = geofencingEvent.getTriggeringLocation().getLongitude();
+                    //TODO user config: move radiusMeters to config - it is the same as the radius when registering geofences.
+                    int radiusMeters = 100;
+                    float[] distance = new float[1];
 
-                //TODO user config: move radiusMeters to config - it is the same as the radius when registering geofences.
-                int radiusMeters = 100;
-                float[] distance = new float[1];
+                    Location.distanceBetween(latitude, longitude, transitionLatitude, transitionLongitude, distance);
 
-                Location.distanceBetween(latitude, longitude, transitionLatitude, transitionLongitude, distance);
-
-                if (distance[0] < radiusMeters) {
-                    updateCheckpoint(cursor);
-                    updateNotification();
-                } else {
-                    // geofence is triggered but it is NOT the next unvisited checkpoint in track!
-                    Toaster.showLong(GeofenceIntentService.this, R.string.toast_checkpoint_not_in_order);
+                    if (distance[0] < radiusMeters) {
+                        updateCheckpoint(cursor);
+                        updateTrack(cursor);
+                        updateNotification();
+                    } else {
+                        // geofence is triggered but it is NOT the next unvisited checkpoint in track!
+                        Toaster.showLong(GeofenceIntentService.this, R.string.toast_checkpoint_not_in_order);
+                    }
                 }
-
-                cursor.close();
             }
         }
     }
 
-    private Cursor getCheckpoints(Intent intent) {
+    private Cursor getUnvisitedCheckpoints(Intent intent) {
         int trackId = intent.getIntExtra(Constants.EXTRA_TRACK_ID, MarathonContract.INVALID_TRACK_ID);
 
         String selection = MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID + "=? AND " +
@@ -113,11 +111,6 @@ public class GeofenceIntentService extends IntentService
         String[] selectionArgs = new String[]{
                 String.valueOf(trackId),
                 String.valueOf(0)};
-
-        Log.v(TAG, String.format("Selection: %s",
-                selection));
-        Log.v(TAG, String.format("Selection args: %s",
-                (Object[]) selectionArgs));
 
         return getContentResolver().query(MarathonContract.CheckpointEntry.CONTENT_URI,
                 null,
@@ -133,11 +126,31 @@ public class GeofenceIntentService extends IntentService
         ContentValues contentValues = new ContentValues(1);
         contentValues.put(MarathonContract.CheckpointEntry.COLUMN_IS_CHECKED, true);
         contentValues.put(MarathonContract.CheckpointEntry.COLUMN_TIME, System.currentTimeMillis());
+        String selection = "_id=?";
+        String[] selectionArgs = new String[]{String.valueOf(id)};
 
         getContentResolver().update(MarathonContract.CheckpointEntry.CONTENT_URI,
                 contentValues,
-                "_id=?",
-                new String[]{String.valueOf(id)});
+                selection,
+                selectionArgs);
+    }
+
+    private void updateTrack(Cursor cursor) {
+        if (cursor.getCount() == 1) {
+            int trackIdColumnIndex = cursor.getColumnIndex(MarathonContract.CheckpointEntry.COLUMN_FC_TRACK_ID);
+            int trackId = cursor.getInt(trackIdColumnIndex);
+
+            ContentValues contentValues = new ContentValues(1);
+            contentValues.put(MarathonContract.TrackEntry.COLUMN_IS_COMPLETE, true);
+            contentValues.put(MarathonContract.TrackEntry.COLUMN_DURATION, System.currentTimeMillis()); //TODO: timespan between start and finish
+            String selection = "_id=?";
+            String[] selectionArgs = new String[]{String.valueOf(trackId)};
+
+            getContentResolver().update(MarathonContract.TrackEntry.CONTENT_URI,
+                    contentValues,
+                    selection,
+                    selectionArgs);
+        }
     }
 
     private void updateNotification() {
