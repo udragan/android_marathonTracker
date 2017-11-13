@@ -7,7 +7,8 @@
     <CheckBox
         android:id="@+id/is_checked_checkpoint_checkBox"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:clickable="false" />
 
     <TextView
         android:id="@+id/name_checkpoint_text"

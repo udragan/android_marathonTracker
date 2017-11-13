@@ -21,7 +21,8 @@
         <CheckBox
             android:id="@+id/track_is_complete_checkbox"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:clickable="false" />
 
         <TextView
             android:id="@+id/track_duration_text"
