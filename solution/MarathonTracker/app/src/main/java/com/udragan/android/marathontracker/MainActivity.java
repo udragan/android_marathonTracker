@@ -21,6 +21,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.Switch;
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity
     private LocationRequest mLocationRequest;
     private Location mLastKnownLocation;
 
+    private RecyclerView.OnItemTouchListener mOnItemTouchListener;
     private OnSuccessListener<LocationSettingsResponse> mLocationSettingsSuccessListener;
     private OnFailureListener mLocationSettingsFailureListener;
     private OnSuccessListener<Location> mLocationSuccessListener;
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity
         RecyclerView tracksRecyclerView = (RecyclerView) findViewById(R.id.tracks_recycler_view_main_activity);
         tracksRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         tracksRecyclerView.setAdapter(mTrackAdapter);
+        tracksRecyclerView.addOnItemTouchListener(mOnItemTouchListener);
 
         mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, null);
         RecyclerView checkpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
@@ -265,6 +268,13 @@ public class MainActivity extends AppCompatActivity
     // private methods **************************************************************************************************
 
     private void defineListeners() {
+        mOnItemTouchListener = new RecyclerView.SimpleOnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                return mTrackingSwitch.isChecked();
+            }
+        };
+
         mLocationSettingsSuccessListener = new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {

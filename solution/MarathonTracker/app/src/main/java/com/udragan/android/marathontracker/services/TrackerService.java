@@ -168,11 +168,6 @@ public class TrackerService extends Service
         String[] selectionArgs = new String[]{
                 String.valueOf(trackId)};
 
-        Log.v(TAG, String.format("Selection: %s",
-                selection));
-        Log.v(TAG, String.format("Selection args: %s",
-                (Object[]) selectionArgs));
-
         return getContentResolver().query(MarathonContract.CheckpointEntry.CONTENT_URI,
                 null,
                 selection,
