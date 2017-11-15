@@ -17,6 +17,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -116,11 +117,15 @@ public class MainActivity extends AppCompatActivity
         tracksRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         tracksRecyclerView.setAdapter(mTrackAdapter);
         tracksRecyclerView.addOnItemTouchListener(mOnItemTouchListener);
+        tracksRecyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,
+                DividerItemDecoration.VERTICAL));
 
         mCheckpointAdapter = new CheckpointAdapter(MainActivity.this, null);
         RecyclerView checkpointsRecyclerView = (RecyclerView) findViewById(R.id.checkpoints_recycler_view_main_activity);
         checkpointsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         checkpointsRecyclerView.setAdapter(mCheckpointAdapter);
+        checkpointsRecyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,
+                DividerItemDecoration.VERTICAL));
 
         getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_TRACKS, null, mTrackLoaderCallback);
         getSupportLoaderManager().initLoader(LOADER_CALLBACK_ID_CHECKPOINTS, null, mCheckpointLoaderCallback);
