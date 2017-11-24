@@ -13,9 +13,13 @@ import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -41,12 +45,15 @@ public class TrackerService extends Service
     private static final String TAG = TrackerService.class.getSimpleName();
     private static final int REQUEST_CODE_GEOFENCE_INTENT_SERVICE = REQUEST_CODE_BASE + 2;
 
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private LocationRequest mLocationRequest;
     private GeofencingClient mGeofencingClient;
     private PendingIntent mGeofenceIntentServicePendingIntent;
     private Notification mStickyNotification;
 
     private OnCompleteListener<Void> mAddGeofencesListener;
     private OnCompleteListener<Void> mRemoveGeofencesListener;
+    private LocationCallback mLocationCallback;
 
     // constructors *****************************************************************************************************
 
@@ -56,6 +63,7 @@ public class TrackerService extends Service
     public TrackerService() {
         Log.d(TAG, "constructor.");
         defineListeners();
+        defineCallbacks();
     }
 
     // overrides ********************************************************************************************************
@@ -64,6 +72,7 @@ public class TrackerService extends Service
     public void onCreate() {
         super.onCreate();
 
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(TrackerService.this);
         mGeofencingClient = LocationServices.getGeofencingClient(TrackerService.this);
     }
 
@@ -77,6 +86,11 @@ public class TrackerService extends Service
             int trackId = intent.getIntExtra(Constants.EXTRA_TRACK_ID, MarathonContract.INVALID_TRACK_ID);
 
             // TODO: move to worker thread since we will contact the database in getGeofencingRequest()
+            Log.d(TAG, "Start location updates.");
+            //noinspection MissingPermission
+            mFusedLocationProviderClient.requestLocationUpdates(getLocationRequest(),
+                    mLocationCallback,
+                    null);
             Log.d(TAG, "Adding geofences...");
             //noinspection MissingPermission
             mGeofencingClient.addGeofences(getGeofencingRequest(trackId), getGeofencingPendingIntent(trackId))
@@ -93,7 +107,10 @@ public class TrackerService extends Service
 
         mGeofencingClient.removeGeofences(getGeofencingPendingIntent(MarathonContract.INVALID_TRACK_ID))
                 .addOnCompleteListener(mRemoveGeofencesListener);
+        mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
+
         mGeofencingClient = null;
+        mFusedLocationProviderClient = null;
 
         Log.d(TAG, "onDestroy.");
     }
@@ -135,6 +152,15 @@ public class TrackerService extends Service
         };
     }
 
+    private void defineCallbacks() {
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                Log.d(TAG, "Current location callback triggered.");
+            }
+        };
+    }
+
     private boolean checkPermissions() {
         Log.d(TAG, "Checking permissions...");
         return checkPermission(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -146,6 +172,21 @@ public class TrackerService extends Service
                 permission, permitted));
 
         return permitted == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @NonNull
+    private LocationRequest getLocationRequest() {
+        if (mLocationRequest == null) {
+            mLocationRequest = new LocationRequest();
+            mLocationRequest.setInterval(10000);        //TODO: move to preferences
+            mLocationRequest.setFastestInterval(5000);  //TODO: move to preferences
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        }
+
+        Log.v(TAG, String.format("Location request: \ninterval: %d\nfastestInterval: %d\npriority: %d",
+                mLocationRequest.getInterval(), mLocationRequest.getFastestInterval(), mLocationRequest.getPriority()));
+
+        return mLocationRequest;
     }
 
     @NonNull
