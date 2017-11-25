@@ -26,7 +26,6 @@ import com.google.android.gms.tasks.Task;
 import com.udragan.android.marathontracker.MainActivity;
 import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
-import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 import com.udragan.android.marathontracker.providers.MarathonContract;
@@ -127,10 +126,8 @@ public class TrackerService extends Service
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toaster.showShort(TrackerService.this, R.string.toast_add_geofence_successful);
                     Log.d(TAG, "Add geofences successful.");
                 } else {
-                    Toaster.showLong(TrackerService.this, R.string.toast_add_geofence_failed);
                     String errorMessage = GeofenceErrorHelper.getErrorString(TrackerService.this, task.getException());
                     Log.w(TAG, errorMessage);
                 }
@@ -141,10 +138,8 @@ public class TrackerService extends Service
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toaster.showShort(TrackerService.this, R.string.toast_remove_geofence_successful);
                     Log.d(TAG, "Remove geofences successful.");
                 } else {
-                    Toaster.showLong(TrackerService.this, R.string.toast_remove_geofence_failed);
                     String errorMessage = GeofenceErrorHelper.getErrorString(TrackerService.this, task.getException());
                     Log.w(TAG, errorMessage);
                 }

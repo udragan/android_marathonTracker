@@ -17,7 +17,6 @@ import com.google.android.gms.location.GeofencingEvent;
 import com.udragan.android.marathontracker.MainActivity;
 import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
-import com.udragan.android.marathontracker.infrastructure.Toaster;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
 import com.udragan.android.marathontracker.providers.MarathonContract;
@@ -96,7 +95,7 @@ public class GeofenceIntentService extends IntentService
                         updateNotification();
                     } else {
                         // geofence is triggered but it is NOT the next unvisited checkpoint in track!
-                        Toaster.showLong(GeofenceIntentService.this, R.string.toast_checkpoint_not_in_order);
+                        Log.i(TAG, "Visited checkpoint not in order!");
                     }
                 }
             }
