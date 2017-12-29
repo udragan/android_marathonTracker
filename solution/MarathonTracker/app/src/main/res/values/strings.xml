@@ -32,4 +32,17 @@
     <string name="toast_location_services_off">Location services turned off!</string>
     <string name="toast_location_services_settings_change_unavailable">Location services settings change not possible!</string>
     <string name="toast_add_track_successful">Successfully added track(s).</string>
+
+    <!-- menu -->
+
+    <string name="menu_preferences">Preferences</string>
+
+    <!-- preferences -->
+
+    <string name="pref_group_location_settings">Location settings</string>
+    <string name="pref_location_request_interval">Request interval</string>
+    <string name="pref_location_request_interval_summary">Interval (in milliseconds) between two requests for current location.</string>
+    <string name="pref_location_request_fastest_interval">Fastest request interval</string>
+    <string name="pref_location_request_fastest_interval_summary">Smallest interval (in milliseconds) between two requests for current location.</string>
+
 </resources>
