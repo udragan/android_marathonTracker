@@ -28,6 +28,7 @@ import com.udragan.android.marathontracker.R;
 import com.udragan.android.marathontracker.helpers.GeofenceErrorHelper;
 import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IService;
+import com.udragan.android.marathontracker.infrastructure.preferences.PreferenceHelper;
 import com.udragan.android.marathontracker.providers.MarathonContract;
 
 import java.util.ArrayList;
@@ -172,9 +173,14 @@ public class TrackerService extends Service
     @NonNull
     private LocationRequest getLocationRequest() {
         if (mLocationRequest == null) {
+            long interval = PreferenceHelper.getLongPreference(TrackerService.this,
+                    Constants.PREF_KEY_LOCATION_REQUEST_INTERVAL);
+            long fastestInterval = PreferenceHelper.getLongPreference(TrackerService.this,
+                    Constants.PREF_KEY_LOCATION_REQUEST_FASTEST_INTERVAL);
+
             mLocationRequest = new LocationRequest();
-            mLocationRequest.setInterval(10000);        //TODO: move to preferences
-            mLocationRequest.setFastestInterval(5000);  //TODO: move to preferences
+            mLocationRequest.setInterval(interval);
+            mLocationRequest.setFastestInterval(fastestInterval);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
 

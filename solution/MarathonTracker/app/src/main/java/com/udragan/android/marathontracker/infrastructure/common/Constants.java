@@ -32,7 +32,17 @@ public class Constants {
     /**
      * Id of the last active track preference key.
      */
-    public static final String PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID = "LAST_ACTIVE_TRACK_ID";
+    public static final String PREF_KEY_LAST_ACTIVE_TRACK_ID = "LAST_ACTIVE_TRACK_ID";
+
+    /**
+     * Location request interval preference key. (from preferences.xml)
+     */
+    public static final String PREF_KEY_LOCATION_REQUEST_INTERVAL = "LOCATION_REQUEST_INTERVAL";
+
+    /**
+     * Location request fastest interval preference key. (from preferences.xml)
+     */
+    public static final String PREF_KEY_LOCATION_REQUEST_FASTEST_INTERVAL = "LOCATION_REQUEST_FASTEST_INTERVAL";
 
     /**
      * Id for TrackId extra inside bundle or intent.

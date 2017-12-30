@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
@@ -55,6 +56,7 @@ import com.udragan.android.marathontracker.infrastructure.common.Constants;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IActivity;
 import com.udragan.android.marathontracker.infrastructure.interfaces.ICursorLoaderCallback;
 import com.udragan.android.marathontracker.infrastructure.interfaces.IDownloadTrackCallback;
+import com.udragan.android.marathontracker.infrastructure.preferences.PreferenceHelper;
 import com.udragan.android.marathontracker.models.CheckpointModel;
 import com.udragan.android.marathontracker.models.TrackModel;
 import com.udragan.android.marathontracker.providers.MarathonContract;
@@ -104,6 +106,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         defineListeners();
         defineCallbacks();
@@ -486,9 +490,14 @@ public class MainActivity extends AppCompatActivity
 
     private LocationRequest getLocationRequest() {
         if (mLocationRequest == null) {
+            long interval = PreferenceHelper.getLongPreference(MainActivity.this,
+                    Constants.PREF_KEY_LOCATION_REQUEST_INTERVAL);
+            long fastestInterval = PreferenceHelper.getLongPreference(MainActivity.this,
+                    Constants.PREF_KEY_LOCATION_REQUEST_FASTEST_INTERVAL);
+
             mLocationRequest = new LocationRequest();
-            mLocationRequest.setInterval(10000);
-            mLocationRequest.setFastestInterval(5000);
+            mLocationRequest.setInterval(interval);
+            mLocationRequest.setFastestInterval(fastestInterval);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
 
@@ -597,9 +606,9 @@ public class MainActivity extends AppCompatActivity
 
     private int getLastActiveTrackIdPreference() {
         SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
-        int lastActiveTrackIdPreference = preferences.getInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, Adapter.NO_SELECTION);
+        int lastActiveTrackIdPreference = preferences.getInt(Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, Adapter.NO_SELECTION);
         Log.v(TAG, String.format("Retrieved preference %s: %s",
-                Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, lastActiveTrackIdPreference));
+                Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, lastActiveTrackIdPreference));
 
         return lastActiveTrackIdPreference;
     }

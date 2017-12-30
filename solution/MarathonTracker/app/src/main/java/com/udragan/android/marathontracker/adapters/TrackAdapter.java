@@ -205,10 +205,10 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         private void saveLastActiveTrackIdPreference(int id) {
             SharedPreferences preferences = mContext.getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt(Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id);
+            editor.putInt(Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, id);
             editor.apply();
             Log.v(TAG, String.format("Saved preference %s: %s",
-                    Constants.PREFERENCE_KEY_LAST_ACTIVE_TRACK_ID, id));
+                    Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, id));
         }
     }
 }
