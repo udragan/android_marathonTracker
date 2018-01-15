@@ -166,6 +166,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mTrackingSwitch.isChecked()) {
+            Toaster.showLong(MainActivity.this, R.string.toast_service_running_in_background);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);

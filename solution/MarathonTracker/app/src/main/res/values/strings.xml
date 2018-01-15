@@ -27,6 +27,7 @@
 
     <!-- toast messages -->
 
+    <string name="toast_service_running_in_background">Tracker service is running in background.</string>
     <string name="toast_location_stale">Last known location is stale!</string>
     <string name="toast_location_permission_denied">Location permission denied!</string>
     <string name="toast_location_services_off">Location services turned off!</string>
