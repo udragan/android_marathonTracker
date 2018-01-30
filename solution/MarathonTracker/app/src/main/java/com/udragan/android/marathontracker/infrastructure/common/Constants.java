@@ -25,6 +25,10 @@ public class Constants {
     public static final long INVALID_TIME_MILLIS = -1;
 
     /**
+     * Invalid track id.
+     */
+    public static final int INVALID_TRACK_ID = -1;
+    /**
      * Name of the global preferences file.
      */
     public static final String GLOBAL_PREFERENCES_KEY = PACKAGE_NAME + ".PREFERENCES";

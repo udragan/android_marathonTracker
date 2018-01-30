@@ -293,13 +293,18 @@ public class MainActivity extends AppCompatActivity
      * @param view view that initiated the switch
      */
     public void switchIsTracking(View view) {
-        Switch geofencingSwitch = (Switch) view;
-        boolean isTracking = geofencingSwitch.isChecked();
+        boolean isTracking = mTrackingSwitch.isChecked();
+        int lastActiveTrackId = getLastActiveTrackIdPreference();
         Intent trackerServiceIntent = new Intent(MainActivity.this, TrackerService.class);
-        trackerServiceIntent.putExtra(Constants.EXTRA_TRACK_ID, getLastActiveTrackIdPreference());
+        trackerServiceIntent.putExtra(Constants.EXTRA_TRACK_ID, lastActiveTrackId);
 
         if (isTracking) {
-            startService(trackerServiceIntent);
+            if (lastActiveTrackId != Constants.INVALID_TRACK_ID) {
+                startService(trackerServiceIntent);
+            } else {
+                mTrackingSwitch.setChecked(false);
+                Toaster.showShort(MainActivity.this, R.string.toast_no_track_selected);
+            }
         } else {
             stopService(trackerServiceIntent);
         }
@@ -622,6 +627,15 @@ public class MainActivity extends AppCompatActivity
         return lastActiveTrackIdPreference;
     }
 
+    private void saveLastActiveTrackIdPreference(int id) {
+        SharedPreferences preferences = getSharedPreferences(Constants.GLOBAL_PREFERENCES_KEY, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt(Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, id);
+        editor.apply();
+        Log.v(TAG, String.format("Saved preference %s: %s",
+                Constants.PREF_KEY_LAST_ACTIVE_TRACK_ID, id));
+    }
+
     // testing //////////////////////////////////
 
     public void testAddTrack(View view) {
@@ -656,6 +670,7 @@ public class MainActivity extends AppCompatActivity
 
     public void testClearDb(View view) {
         int noOfDeleted = getContentResolver().delete(MarathonContract.TrackEntry.CONTENT_URI, null, null);
+        saveLastActiveTrackIdPreference(Constants.INVALID_TRACK_ID);
         Toaster.showShort(MainActivity.this, String.format(Locale.getDefault(), "Deleted: %d", noOfDeleted));
     }
 
